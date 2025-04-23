@@ -6,7 +6,7 @@
 - [ ] Convert Markdown into HTML.
     - [x] Parse Header to h1, h2, h3, etc.
     - [x] Parse paragraphs.
-    - [x] Parse lists.
+    - [ ] Parse lists.
     - [ ] Parse text formatting (bold, italic, etc.).
     - [ ] Parse links.
     - [ ] Parse code blocks.
