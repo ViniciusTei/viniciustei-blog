@@ -55,26 +55,18 @@ type ArticlePage struct {
 	UserName string
 }
 
-func HandleArticles(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 	slug := r.PathValue("slug")
 	if slug == "" {
 		http.Error(w, "Article not found", http.StatusNotFound)
 		return
 	}
 
-	articles, err := LoadMarkdownFiles("articles")
+	article, err := h.ArticleUseCase.GetArticleBySlug(slug)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error loading articles:", err)
+		log.Println("Error getting article:", err)
 		return
-	}
-
-	var article Article
-	for _, a := range articles {
-		if a.Slug == slug {
-			article = a
-			break
-		}
 	}
 
 	if article.Slug == "" {
