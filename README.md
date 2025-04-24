@@ -1,5 +1,9 @@
 # Blog
 
+A simple web application that serves articles written in Markdown format. The application will read the Markdown files, convert them into HTML, and serve them as web pages. 
+
+The goal is to create the application without any extern dependecys, using only the Go standard library and the Browser's built-in capabilities.
+
 ### Features:
         
 - [x] Read articles from Markdown files.
