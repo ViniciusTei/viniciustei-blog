@@ -1,0 +1,42 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
+    <title>{{ .Title }}</title>
+
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+  <nav class="nav_container">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+
+    <ul>
+    {{ if .UserId }}
+      <li><a href="/profile">Profile</a></li>
+      <li><a href="/logout">Logout</a></li>
+    {{ else }}
+      <li><a href="/login">Login</a></li>
+    {{ end }}
+    </ul>
+    
+    {{ if .UserId }}
+      <span class="hidden">Welcome, {{ .UserName }}</span>
+    {{ end }}
+    
+  </nav>
+  <hr/>
+
+  {{ block "content" . }}{{ end }}
+</body>
+</html>
+{{ end }}
