@@ -17,6 +17,7 @@ const (
 	TokenParagraph     TokenType = "paragraph"
 	TokenListItem      TokenType = "listitem"
 	TokenOrderListItem TokenType = "orderlistitem"
+	TokenCodeBlock     TokenType = "codeblock"
 	TokenEOF           TokenType = "EOF"
 )
 
@@ -62,6 +63,18 @@ func (l *Lexer) NextToken() Token {
 			// e.g. "1. List item"
 			dotIdx := strings.Index(line, ".")
 			return Token{Type: TokenOrderListItem, Literal: strings.TrimSpace(line[dotIdx+1:])}
+		} else if strings.HasPrefix(line, "```") {
+			// Start of code block
+			var codeLines []string
+			for l.cursor < len(l.lines) {
+				codeLine := l.lines[l.cursor]
+				l.cursor++
+				if strings.TrimSpace(codeLine) == "```" {
+					break
+				}
+				codeLines = append(codeLines, codeLine)
+			}
+			return Token{Type: TokenCodeBlock, Literal: strings.Join(codeLines, "\n")}
 		}
 		return Token{Type: TokenParagraph, Literal: strings.TrimSpace(line)}
 	}
