@@ -3,16 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
     <title>{{ .Title }}</title>
+
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
-  <ul>
-    {{ range .Articles}}
-      <li>
-        <a href="/article/{{ .Slug }}" target="_blank">{{ .Title }}</a>
-      </li>
+  <nav class="nav_container">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+
+    <ul>
+    {{ if .UserId }}
+      <li><a href="/profile">Profile</a></li>
+      <li><a href="/logout">Logout</a></li>
+    {{ else }}
+      <li><a href="/login">Login</a></li>
     {{ end }}
-  </ul>
+    </ul>
+    
+    {{ if .UserId }}
+      <span class="hidden">Welcome, {{ .UserName }}</span>
+    {{ end }}
+    
+  </nav>
+  <hr/>
+
+  <main>
+    <h1>Welcome to My Blog</h1>
+    <p class="main_description">
+      A personal space where I share my thoughts on web development, design, and technology.
+    </p>
+
+    <section id="articles">
+      <h2>Latest Articles</h2>
+      <p class="main_description">
+        Here are some of my latest articles. Click on the titles to read more.
+      </p>
+
+      <ul class="articles_list">
+        {{ range .Articles}}
+          <li>
+            <a href="/article/{{ .Slug }}" target="_blank">{{ .Title }}</a>
+          </li>
+        {{ end }}
+      </ul>
+    </section>
+  </main>
 </body>
 </html>
 

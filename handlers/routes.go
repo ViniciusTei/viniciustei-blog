@@ -9,6 +9,8 @@ import (
 type PageData struct {
 	Title    string
 	Articles []Article
+	UserId   string
+	UserName string
 }
 
 func HandleRoot(w http.ResponseWriter, r *http.Request) {
