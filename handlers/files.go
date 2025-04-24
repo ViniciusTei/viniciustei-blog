@@ -18,9 +18,9 @@ func LoadMarkdown(filepath string) (Article, error) {
 		return Article{}, err
 	}
 
-	title := strings.Split(string(content), "\n")[0]
-	slug := strings.Split(filepath, "/")[len(strings.Split(filepath, "/"))-1]
-	return Article{Title: strings.TrimPrefix(title, "# "), Content: string(content), Slug: slug}, nil
+	title := strings.TrimPrefix(strings.Split(string(content), "\n")[0], "# ")
+	slug := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
+	return Article{Title: title, Content: string(content), Slug: slug}, nil
 }
 
 func LoadMarkdownFiles(dir string) ([]Article, error) {
