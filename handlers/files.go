@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ViniciusTei/viniciustei-blog/markdown"
 )
 
 type Article struct {
@@ -20,7 +22,8 @@ func LoadMarkdown(filepath string) (Article, error) {
 
 	title := strings.TrimPrefix(strings.Split(string(content), "\n")[0], "# ")
 	slug := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
-	return Article{Title: title, Content: string(content), Slug: slug}, nil
+	htmlContent := markdown.MarkdownToHTML(string(content))
+	return Article{Title: title, Content: htmlContent, Slug: slug}, nil
 }
 
 func LoadMarkdownFiles(dir string) ([]Article, error) {
