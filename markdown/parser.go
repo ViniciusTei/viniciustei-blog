@@ -5,14 +5,15 @@ import "fmt"
 type NodeType string
 
 const (
-	NodeHeader    NodeType = "header"
-	NodeHeader2   NodeType = "header2"
-	NodeHeader3   NodeType = "header3"
-	NodeHeader4   NodeType = "header4"
-	NodeHeader5   NodeType = "header5"
-	NodeHeader6   NodeType = "header6"
-	NodeParagraph NodeType = "paragraph"
-	NodeList      NodeType = "list"
+	NodeHeader        NodeType = "header"
+	NodeHeader2       NodeType = "header2"
+	NodeHeader3       NodeType = "header3"
+	NodeHeader4       NodeType = "header4"
+	NodeHeader5       NodeType = "header5"
+	NodeHeader6       NodeType = "header6"
+	NodeParagraph     NodeType = "paragraph"
+	NodeListItem      NodeType = "listitem"
+	NodeOrderListItem NodeType = "orderlistitem"
 )
 
 type Node struct {
@@ -56,26 +57,52 @@ func (p *Parser) Parse() []*Node {
 		switch token.Type {
 		case TokenHeader:
 			nodes = append(nodes, &Node{Type: NodeHeader, Content: token.Literal})
+			p.advance()
 		case TokenHeader2:
 			nodes = append(nodes, &Node{Type: NodeHeader2, Content: token.Literal})
+			p.advance()
 		case TokenHeader3:
 			nodes = append(nodes, &Node{Type: NodeHeader3, Content: token.Literal})
+			p.advance()
 		case TokenHeader4:
 			nodes = append(nodes, &Node{Type: NodeHeader4, Content: token.Literal})
+			p.advance()
 		case TokenHeader5:
 			nodes = append(nodes, &Node{Type: NodeHeader5, Content: token.Literal})
+			p.advance()
 		case TokenHeader6:
 			nodes = append(nodes, &Node{Type: NodeHeader6, Content: token.Literal})
+			p.advance()
 		case TokenParagraph:
 			nodes = append(nodes, &Node{Type: NodeParagraph, Content: token.Literal})
-		case TokenList:
-			listNode := &Node{Type: NodeList}
-			listNode.Children = append(listNode.Children, &Node{Type: NodeParagraph, Content: token.Literal})
-			nodes = append(nodes, listNode)
+			p.advance()
+		case TokenListItem:
+			listnode := &Node{Type: NodeListItem, Content: token.Literal}
+			listnode.Children = append(listnode.Children, listnode)
 
+			for {
+				if token.Type != TokenListItem {
+					break
+				}
+				listnode.Children = append(listnode.Children, &Node{Type: NodeParagraph, Content: token.Literal})
+				token = p.peek()
+				p.advance()
+			}
+		case TokenOrderListItem:
+			listnode := &Node{Type: NodeOrderListItem, Content: token.Literal}
+			nodes = append(nodes, listnode)
+
+			for {
+				if token.Type != TokenOrderListItem {
+					break
+				}
+				listnode.Children = append(listnode.Children, &Node{Type: NodeParagraph, Content: token.Literal})
+				token = p.peek()
+				p.advance()
+			}
 		}
-		p.advance()
 	}
+
 	return nodes
 }
 
@@ -98,7 +125,7 @@ func (p *Parser) ToHTML() string {
 			html += fmt.Sprintf("<h6>%s</h6>\n", node.Content)
 		case NodeParagraph:
 			html += fmt.Sprintf("<p>%s</p>\n", node.Content)
-		case NodeList:
+		case NodeListItem:
 			/* TODO:
 			 * The list is redenring wrong, it is wrapping every li inside its
 			 * own ul. Inteads, every li should be inside the same ul.
@@ -108,8 +135,6 @@ func (p *Parser) ToHTML() string {
 				html += fmt.Sprintf("<li>%s</li>\n", child.Content)
 			}
 			html += "</ul>\n"
-		default:
-			html += fmt.Sprintf("<p>%s</p>\n", node.Content)
 		}
 
 	}

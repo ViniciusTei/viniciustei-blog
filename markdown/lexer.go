@@ -1,19 +1,22 @@
 package markdown
 
-import "strings"
+import (
+	"strings"
+)
 
 type TokenType string
 
 const (
-	TokenHeader    TokenType = "header"
-	TokenHeader2   TokenType = "header2"
-	TokenHeader3   TokenType = "header3"
-	TokenHeader4   TokenType = "header4"
-	TokenHeader5   TokenType = "header5"
-	TokenHeader6   TokenType = "header6"
-	TokenParagraph TokenType = "paragraph"
-	TokenList      TokenType = "list"
-	TokenEOF       TokenType = "EOF"
+	TokenHeader        TokenType = "header"
+	TokenHeader2       TokenType = "header2"
+	TokenHeader3       TokenType = "header3"
+	TokenHeader4       TokenType = "header4"
+	TokenHeader5       TokenType = "header5"
+	TokenHeader6       TokenType = "header6"
+	TokenParagraph     TokenType = "paragraph"
+	TokenListItem      TokenType = "listitem"
+	TokenOrderListItem TokenType = "orderlistitem"
+	TokenEOF           TokenType = "EOF"
 )
 
 type Token struct {
@@ -67,11 +70,11 @@ func (l *Lexer) NextToken() Token {
 		}
 
 		return Token{Type: TokenHeader6, Literal: strings.TrimSpace(line[level:])}
-	} else if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") {
-		return Token{Type: TokenList, Literal: strings.TrimSpace(line[2:])}
+	} else if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") || strings.HasPrefix(line, "+ ") {
+		return Token{Type: TokenListItem, Literal: strings.TrimSpace(line[2:])}
 	} else if line == "" {
 		return l.NextToken() // skip empty line
 	}
 
-	return Token{Type: TokenParagraph, Literal: line}
+	return Token{Type: TokenParagraph, Literal: strings.TrimSpace(line)}
 }
