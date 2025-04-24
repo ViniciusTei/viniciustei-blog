@@ -6,7 +6,13 @@
     <title>{{ .Title }}</title>
 </head>
 <body>
-    {{ .Content }}
+  <ul>
+    {{ range .Articles}}
+      <li>
+        <a href="/article/{{ .Slug }}" target="_blank">{{ .Title }}</a>
+      </li>
+    {{ end }}
+  </ul>
 </body>
 </html>
 

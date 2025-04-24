@@ -7,8 +7,8 @@ import (
 )
 
 type PageData struct {
-	Title   string
-	Content template.HTML
+	Title    string
+	Articles []Article
 }
 
 func HandleRoot(w http.ResponseWriter, r *http.Request) {
@@ -26,15 +26,9 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := "<ul>\n"
-	for _, article := range articles {
-		content += "<li>" + article.Title + "</li>\n"
-	}
-	content += "</ul>\n"
-
 	data := PageData{
-		Title:   "My Blog",
-		Content: template.HTML(content),
+		Title:    "My Blog",
+		Articles: articles,
 	}
 
 	err = tmpl.Execute(w, data)
