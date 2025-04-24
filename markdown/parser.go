@@ -74,32 +74,45 @@ func (p *Parser) Parse() []*Node {
 			nodes = append(nodes, &Node{Type: NodeHeader6, Content: token.Literal})
 			p.advance()
 		case TokenParagraph:
+			if token.Literal == "" {
+				p.advance()
+				continue
+			}
 			nodes = append(nodes, &Node{Type: NodeParagraph, Content: token.Literal})
 			p.advance()
 		case TokenListItem:
-			listnode := &Node{Type: NodeListItem, Content: token.Literal}
-			listnode.Children = append(listnode.Children, listnode)
-
+			listNode := &Node{Type: NodeListItem}
 			for {
+				token := p.peek()
 				if token.Type != TokenListItem {
 					break
 				}
-				listnode.Children = append(listnode.Children, &Node{Type: NodeParagraph, Content: token.Literal})
-				token = p.peek()
+				listNode.Children = append(listNode.Children, &Node{Type: NodeListItem, Content: token.Literal})
 				p.advance()
+				// Stop if next token is a paragraph with empty content (blank line)
+				if p.peek().Type == TokenParagraph && p.peek().Literal == "" {
+					p.advance()
+					break
+				}
 			}
+			nodes = append(nodes, listNode)
 		case TokenOrderListItem:
-			listnode := &Node{Type: NodeOrderListItem, Content: token.Literal}
-			nodes = append(nodes, listnode)
-
+			listNode := &Node{Type: NodeOrderListItem}
 			for {
+				token := p.peek()
 				if token.Type != TokenOrderListItem {
 					break
 				}
-				listnode.Children = append(listnode.Children, &Node{Type: NodeParagraph, Content: token.Literal})
-				token = p.peek()
+				listNode.Children = append(listNode.Children, &Node{Type: NodeOrderListItem, Content: token.Literal})
 				p.advance()
+				if p.peek().Type == TokenParagraph && p.peek().Literal == "" {
+					p.advance()
+					break
+				}
 			}
+			nodes = append(nodes, listNode)
+		default:
+			p.advance()
 		}
 	}
 
@@ -135,6 +148,12 @@ func (p *Parser) ToHTML() string {
 				html += fmt.Sprintf("<li>%s</li>\n", child.Content)
 			}
 			html += "</ul>\n"
+		case NodeOrderListItem:
+			html += "<ol>\n"
+			for _, child := range node.Children {
+				html += fmt.Sprintf("<li>%s</li>\n", child.Content)
+			}
+			html += "</ol>\n"
 		}
 
 	}

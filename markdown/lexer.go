@@ -1,6 +1,7 @@
 package markdown
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -39,42 +40,48 @@ func NewLexer(input string) *Lexer {
 }
 
 func (l *Lexer) NextToken() Token {
-	if l.cursor >= len(l.lines) {
-		return Token{Type: TokenEOF}
+	for l.cursor < len(l.lines) {
+		line := strings.TrimSpace(l.lines[l.cursor]) // Trim spaces here!
+		l.cursor++
+
+		if strings.HasPrefix(line, "#") {
+			level := strings.Count(line, "#")
+			return Token{
+				Type: TokenType("header" + func() string {
+					if level == 1 {
+						return ""
+					} else {
+						return fmt.Sprintf("%d", level)
+					}
+				}()),
+				Literal: strings.TrimSpace(line[level:]),
+			}
+		} else if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") || strings.HasPrefix(line, "+ ") {
+			return Token{Type: TokenListItem, Literal: strings.TrimSpace(line[2:])}
+		} else if isOrderedListItem(line) {
+			// e.g. "1. List item"
+			dotIdx := strings.Index(line, ".")
+			return Token{Type: TokenOrderListItem, Literal: strings.TrimSpace(line[dotIdx+1:])}
+		}
+		return Token{Type: TokenParagraph, Literal: strings.TrimSpace(line)}
 	}
 
-	line := l.lines[l.cursor]
-	l.cursor++
+	return Token{Type: TokenEOF}
+}
 
-	if strings.HasPrefix(line, "#") {
-		level := strings.Count(line, "#")
-
-		if level == 5 {
-			return Token{Type: TokenHeader5, Literal: strings.TrimSpace(line[level:])}
-		}
-
-		if level == 4 {
-			return Token{Type: TokenHeader4, Literal: strings.TrimSpace(line[level:])}
-		}
-
-		if level == 3 {
-			return Token{Type: TokenHeader3, Literal: strings.TrimSpace(line[level:])}
-		}
-
-		if level == 2 {
-			return Token{Type: TokenHeader2, Literal: strings.TrimSpace(line[level:])}
-		}
-
-		if level == 1 {
-			return Token{Type: TokenHeader, Literal: strings.TrimSpace(line[level:])}
-		}
-
-		return Token{Type: TokenHeader6, Literal: strings.TrimSpace(line[level:])}
-	} else if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") || strings.HasPrefix(line, "+ ") {
-		return Token{Type: TokenListItem, Literal: strings.TrimSpace(line[2:])}
-	} else if line == "" {
-		return l.NextToken() // skip empty line
+// Helper function for ordered list detection
+func isOrderedListItem(line string) bool {
+	if len(line) < 3 {
+		return false
 	}
-
-	return Token{Type: TokenParagraph, Literal: strings.TrimSpace(line)}
+	// Find a number followed by a dot and a space
+	for i := 0; i < len(line); i++ {
+		if line[i] < '0' || line[i] > '9' {
+			if line[i] == '.' && i+1 < len(line) && line[i+1] == ' ' {
+				return i > 0
+			}
+			return false
+		}
+	}
+	return false
 }
