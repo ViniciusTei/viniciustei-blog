@@ -6,15 +6,15 @@
 - [ ] Convert Markdown into HTML.
     - [x] Parse Header to h1, h2, h3, etc.
     - [x] Parse paragraphs.
-    - [ ] Parse lists.
+    - [x] Parse lists.
     - [ ] Parse text formatting (bold, italic, etc.).
     - [ ] Parse links.
     - [ ] Parse code blocks.
     - [ ] Parse blockquotes.
     - [ ] Parse tables.
     - [ ] Parse images.
-- [ ] Serve articles as web pages.
-- [ ] List all articles on a home page.
+- [x] Serve articles as web pages.
+- [x] List all articles on a home page.
 
 ### Project Structure:
 
