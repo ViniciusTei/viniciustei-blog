@@ -4,30 +4,34 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/ViniciusTei/viniciustei-blog/entities"
+	"github.com/ViniciusTei/viniciustei-blog/usecases"
 )
 
 type PageData struct {
 	Title    string
-	Articles []Article
+	Articles []entities.Article
 	UserId   string
 	UserName string
 }
 
-func HandleRoot(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(
-		"templates/layout.html",
-		"templates/index.html",
-	)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error parsing template:", err)
-		return
-	}
+type Handler struct {
+	ArticleUseCase *usecases.ArticleUseCase
+}
 
-	articles, err := LoadMarkdownFiles("articles")
+func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
+	articles, err := h.ArticleUseCase.GetAllArticles()
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Println("Error loading articles:", err)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("templates/layout.html", "templates/index.html")
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		log.Println("Error parsing template:", err)
 		return
 	}
 
