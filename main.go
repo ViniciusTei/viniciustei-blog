@@ -20,7 +20,7 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	mux.HandleFunc("/", handler.HandleRoot)
-	mux.HandleFunc("/article/{slug}", handlers.HandleArticles)
+	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
 	mux.HandleFunc("/about", handlers.HandleAbout)
 
 	fmt.Println("Starting server on :8080")
