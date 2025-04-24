@@ -129,20 +129,46 @@ func (p *Parser) Parse() []*Node {
 
 func formatInline(text string) string {
 	// Bold-italic: ***text*** or ___text___
-	reBoldItalic := regexp.MustCompile(`(\*\*\*|___)(.*?)\1`)
-	text = reBoldItalic.ReplaceAllString(text, "<strong><em>$2</em></strong>")
+	reBoldItalic := regexp.MustCompile(`(\*\*\*|___)([^*_]+?)(\*\*\*|___)`)
+	text = reBoldItalic.ReplaceAllStringFunc(text, func(match string) string {
+		if strings.HasPrefix(match, "***") && strings.HasSuffix(match, "***") {
+			return "<strong><em>" + match[3:len(match)-3] + "</em></strong>"
+		} else if strings.HasPrefix(match, "___") && strings.HasSuffix(match, "___") {
+			return "<strong><em>" + match[3:len(match)-3] + "</em></strong>"
+		}
+		return match
+	})
+
 	// Bold: **text** or __text__
-	reBold := regexp.MustCompile(`(\*\*|__)(.*?)\1`)
-	text = reBold.ReplaceAllString(text, "<strong>$2</strong>")
+	reBold := regexp.MustCompile(`(\*\*|__)([^*_]+?)(\*\*|__)`)
+	text = reBold.ReplaceAllStringFunc(text, func(match string) string {
+		if strings.HasPrefix(match, "**") && strings.HasSuffix(match, "**") {
+			return "<strong>" + match[2:len(match)-2] + "</strong>"
+		} else if strings.HasPrefix(match, "__") && strings.HasSuffix(match, "__") {
+			return "<strong>" + match[2:len(match)-2] + "</strong>"
+		}
+		return match
+	})
+
 	// Italic: *text* or _text_
-	reItalic := regexp.MustCompile(`(\*|_)(.*?)\1`)
-	text = reItalic.ReplaceAllString(text, "<em>$2</em>")
+	reItalic := regexp.MustCompile(`(\*|_)([^*_]+?)(\*|_)`)
+	text = reItalic.ReplaceAllStringFunc(text, func(match string) string {
+		if strings.HasPrefix(match, "*") && strings.HasSuffix(match, "*") {
+			return "<em>" + match[1:len(match)-1] + "</em>"
+		} else if strings.HasPrefix(match, "_") && strings.HasSuffix(match, "_") {
+			return "<em>" + match[1:len(match)-1] + "</em>"
+		}
+		return match
+	})
+
 	// Links: [text](url)
 	reLink := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
 	text = reLink.ReplaceAllString(text, `<a href="$2">$1</a>`)
+
 	// Images: ![alt](url)
 	reImage := regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)
 	text = reImage.ReplaceAllString(text, `<img src="$2" alt="$1">`)
+
 	return text
 }
 
