@@ -21,6 +21,13 @@ type Handler struct {
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
+	// The "/" pattern matches everything, so we need to check
+	// that we're at the root here.
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	articles, err := h.ArticleUseCase.GetAllArticles()
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
