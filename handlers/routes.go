@@ -75,6 +75,7 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		log.Println("Error getting cookies:", err) // yet do nothing
 	}
+
 	if cookie != nil && cookie.Value != "" {
 		key := []byte("6091835705053067")
 		decrypted, err := utils.Decrypt(key, cookie.Value)
