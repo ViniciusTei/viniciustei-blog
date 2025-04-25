@@ -20,14 +20,13 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	mux.HandleFunc("/", handler.HandleRoot)
 	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
 	mux.HandleFunc("/about", handlers.HandleAbout)
 	mux.HandleFunc("/login", handlers.HandleLogin)
-	mux.HandleFunc("/dashboard", handlers.HandleAbout)
+	mux.HandleFunc("/", handler.HandleRoot)
 
 	//middlewares
-	withMidllewaresMux := middlewares.NewLogger(mux)
+	withMidllewaresMux := middlewares.NewLogger(middlewares.NewResponseHeader(mux, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"))
 
 	fmt.Println("Starting server on :8080")
 	http.ListenAndServe(":8080", withMidllewaresMux)
