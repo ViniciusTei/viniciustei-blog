@@ -4,9 +4,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/ViniciusTei/viniciustei-blog/entities"
 	"github.com/ViniciusTei/viniciustei-blog/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 
 type PageData struct {
@@ -18,6 +20,32 @@ type PageData struct {
 
 type Handler struct {
 	ArticleUseCase *usecases.ArticleUseCase
+	AuthUseCase    *usecases.AuthUseCase
+}
+
+func (h *Handler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	token, err := h.AuthUseCase.SignIn(username, password)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		log.Println("Error signing in:", err)
+		return
+	}
+
+	// Set the token in the cookie and redirect to the root
+	http.SetCookie(w, &http.Cookie{
+		Name:  "auth_token",
+		Value: token,
+	})
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
@@ -42,9 +70,29 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if we have a token in the cookie
+	cookie, err := r.Cookie("auth_token")
+	if err == nil {
+		log.Println("Error getting cookies:", err) // yet do nothing
+	}
+	var userId, userName string
+	if cookie != nil {
+		key := []byte("6091835705053067")
+		decrypted, err := utils.Decrypt(key, cookie.Value)
+		if err != nil {
+			log.Println("Error decrypting token:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		userId = strings.Split(decrypted, ":")[0]
+		userName = strings.Split(decrypted, ":")[1]
+	}
+
 	data := PageData{
 		Title:    "My Blog",
 		Articles: articles,
+		UserId:   userId,
+		UserName: userName,
 	}
 
 	err = tmpl.ExecuteTemplate(w, "layout", data)

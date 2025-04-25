@@ -13,7 +13,10 @@ import (
 func main() {
 	articleRepo := &repositories.ArticleRepositoryImpl{}
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
-	handler := &handlers.Handler{ArticleUseCase: articleUseCase}
+	authRepo := &repositories.AuthRepositoryImpl{}
+	authUseCase := &usecases.AuthUseCase{Repo: authRepo}
+
+	handler := &handlers.Handler{ArticleUseCase: articleUseCase, AuthUseCase: authUseCase}
 
 	mux := http.NewServeMux()
 
@@ -23,6 +26,7 @@ func main() {
 	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
 	mux.HandleFunc("/about", handlers.HandleAbout)
 	mux.HandleFunc("/login", handlers.HandleLogin)
+	mux.HandleFunc("POST /signin", handler.HandleSignIn)
 	mux.HandleFunc("/", handler.HandleRoot)
 
 	//middlewares
