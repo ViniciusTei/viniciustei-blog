@@ -7,9 +7,9 @@ import (
 
 type ArticleRepositoryImpl struct{}
 
-func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
+func (r *ArticleRepositoryImpl) LoadArticles(dir string) ([]entities.Article, error) {
 	// Load articles using the existing function
-	articles, err := handlers.LoadMarkdownFiles("articles")
+	articles, err := handlers.LoadMarkdownFiles(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +27,8 @@ func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
 	return result, nil
 }
 
-func (r *ArticleRepositoryImpl) LoadArticleBySlug(slug string) (entities.Article, error) {
-	articles, err := r.LoadArticles()
+func (r *ArticleRepositoryImpl) LoadArticleBySlug(slug string, dir string) (entities.Article, error) {
+	articles, err := r.LoadArticles(dir)
 	if err != nil {
 		return entities.Article{}, err
 	}
