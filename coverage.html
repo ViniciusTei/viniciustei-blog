@@ -55,11 +55,23 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/ViniciusTei/viniciustei-blog/handlers/markdown.go (83.3%)</option>
+				<option value="file0">github.com/ViniciusTei/viniciustei-blog/handlers/files.go (84.2%)</option>
 				
 				<option value="file1">github.com/ViniciusTei/viniciustei-blog/handlers/routes.go (0.0%)</option>
 				
 				<option value="file2">github.com/ViniciusTei/viniciustei-blog/main.go (0.0%)</option>
+				
+				<option value="file3">github.com/ViniciusTei/viniciustei-blog/markdown/lexer.go (70.6%)</option>
+				
+				<option value="file4">github.com/ViniciusTei/viniciustei-blog/markdown/markdow_parser.go (100.0%)</option>
+				
+				<option value="file5">github.com/ViniciusTei/viniciustei-blog/markdown/parser.go (63.3%)</option>
+				
+				<option value="file6">github.com/ViniciusTei/viniciustei-blog/middlewares/logger.go (0.0%)</option>
+				
+				<option value="file7">github.com/ViniciusTei/viniciustei-blog/repositories/article_repository.go (78.6%)</option>
+				
+				<option value="file8">github.com/ViniciusTei/viniciustei-blog/usecases/article_usecase.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -76,47 +88,175 @@
 		<pre class="file" id="file0" style="display: none">package handlers
 
 import (
-        "io/ioutil"
+        "os"
         "path/filepath"
         "strings"
+
+        "github.com/ViniciusTei/viniciustei-blog/markdown"
 )
 
 type Article struct {
         Title   string
         Content string
+        Slug    string
+}
+
+func LoadMarkdown(filepath string) (Article, error) <span class="cov8" title="1">{
+        content, err := os.ReadFile(filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                return Article{}, err
+        }</span>
+
+        <span class="cov8" title="1">title := strings.TrimPrefix(strings.Split(string(content), "\n")[0], "# ")
+        slug := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
+        htmlContent := markdown.MarkdownToHTML(string(content))
+        return Article{Title: title, Content: htmlContent, Slug: slug}, nil</span>
 }
 
 func LoadMarkdownFiles(dir string) ([]Article, error) <span class="cov8" title="1">{
         var articles []Article
-        files, err := ioutil.ReadDir(dir)
+
+        files, err := os.ReadDir(dir)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
+
         <span class="cov8" title="1">for _, file := range files </span><span class="cov8" title="1">{
                 if filepath.Ext(file.Name()) == ".md" </span><span class="cov8" title="1">{
-                        content, err := ioutil.ReadFile(filepath.Join(dir, file.Name()))
+                        filePath := filepath.Join(dir, file.Name())
+                        article, err := LoadMarkdown(filePath)
                         if err != nil </span><span class="cov0" title="0">{
                                 return nil, err
                         }</span>
-                        <span class="cov8" title="1">title := strings.Split(string(content), "\n")[0]
-                        articles = append(articles, Article{Title: strings.TrimPrefix(title, "# "), Content: string(content)})</span>
+
+                        <span class="cov8" title="1">articles = append(articles, article)</span>
                 }
         }
+
         <span class="cov8" title="1">return articles, nil</span>
 }
 </pre>
 		
 		<pre class="file" id="file1" style="display: none">package handlers
 
-import "net/http"
+import (
+        "html/template"
+        "log"
+        "net/http"
 
-func HandleRoot(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
-        w.Write([]byte("Hello, World!"))
-}</span>
+        "github.com/ViniciusTei/viniciustei-blog/entities"
+        "github.com/ViniciusTei/viniciustei-blog/usecases"
+)
 
-func HandleArticles(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
-        w.Write([]byte("Articles Page"))
-}</span>
+type PageData struct {
+        Title    string
+        Articles []entities.Article
+        UserId   string
+        UserName string
+}
+
+type Handler struct {
+        ArticleUseCase *usecases.ArticleUseCase
+}
+
+func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        articles, err := h.ArticleUseCase.GetAllArticles()
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error loading articles:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">tmpl, err := template.ParseFiles("templates/layout.html", "templates/index.html")
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error parsing template:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">data := PageData{
+                Title:    "My Blog",
+                Articles: articles,
+        }
+
+        err = tmpl.ExecuteTemplate(w, "layout", data)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error executing template:", err)
+                return
+        }</span>
+}
+
+type ArticlePage struct {
+        Title    string
+        Content  template.HTML
+        UserId   string
+        UserName string
+}
+
+func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        slug := r.PathValue("slug")
+        if slug == "" </span><span class="cov0" title="0">{
+                http.Error(w, "Article not found", http.StatusNotFound)
+                return
+        }</span>
+
+        <span class="cov0" title="0">article, err := h.ArticleUseCase.GetArticleBySlug(slug)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error getting article:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if article.Slug == "" </span><span class="cov0" title="0">{
+                http.Error(w, "Article not found", http.StatusNotFound)
+                return
+        }</span>
+
+        <span class="cov0" title="0">tmpl, err := template.ParseFiles(
+                "templates/layout.html",
+                "templates/articles.html",
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error parsing template:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">err = tmpl.ExecuteTemplate(w, "layout", ArticlePage{
+                Title:   article.Title,
+                Content: template.HTML(article.Content),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error executing template:", err)
+                return
+        }</span>
+}
+
+func HandleAbout(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        tmpl, err := template.ParseFiles(
+                "templates/layout.html",
+                "templates/about.html",
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error parsing template:", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">data := PageData{
+                Title: "About",
+                // Adicione outros campos se necessário
+        }
+
+        err = tmpl.ExecuteTemplate(w, "layout", data)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+                log.Println("Error executing template:", err)
+                return
+        }</span>
+}
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package main
@@ -126,41 +266,465 @@ import (
         "net/http"
 
         "github.com/ViniciusTei/viniciustei-blog/handlers"
+        "github.com/ViniciusTei/viniciustei-blog/middlewares"
+        "github.com/ViniciusTei/viniciustei-blog/repositories"
+        "github.com/ViniciusTei/viniciustei-blog/usecases"
 )
 
 func main() <span class="cov0" title="0">{
+        articleRepo := &amp;repositories.ArticleRepositoryImpl{}
+        articleUseCase := &amp;usecases.ArticleUseCase{Repo: articleRepo}
+        handler := &amp;handlers.Handler{ArticleUseCase: articleUseCase}
+
         mux := http.NewServeMux()
 
-        mux.HandleFunc("/", handlers.HandleRoot)
-        mux.HandleFunc("/articles", handlers.HandleArticles)
+        fs := http.FileServer(http.Dir("static"))
+        mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-        mux.HandleFunc("/api/v1/articles", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
-                articles := []string{"Article 1", "Article 2", "Article 3"}
-                w.Header().Set("Content-Type", "application/json")
-                w.WriteHeader(http.StatusOK)
-                w.Write([]byte(`{"articles":` + fmt.Sprintf("%q", articles) + `}`))
-        }</span>)
+        mux.HandleFunc("/", handler.HandleRoot)
+        mux.HandleFunc("/article/{slug}", handler.HandleArticles)
+        mux.HandleFunc("/about", handlers.HandleAbout)
 
-        <span class="cov0" title="0">mux.HandleFunc("POST /api/v1/articles", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
-                if r.Method != http.MethodPost </span><span class="cov0" title="0">{
-                        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-                        return
-                }</span>
-                // Here you would typically parse the request body and save the article
-        })
-        <span class="cov0" title="0">mux.HandleFunc("GET /api/v1/articles/{slug}", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
-                if r.Method != http.MethodGet </span><span class="cov0" title="0">{
-                        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-                        return
-                }</span>
-                <span class="cov0" title="0">slug := r.PathValue("slug")
-                fmt.Printf("Fetching article with slug: %s\n", slug)</span>
-                // ...
-        })
+        //middlewares
+        withMidllewaresMux := middlewares.NewLogger(mux)
 
-        <span class="cov0" title="0">fmt.Println("Starting server on :8080")
-        http.ListenAndServe(":8080", mux)</span>
+        fmt.Println("Starting server on :8080")
+        http.ListenAndServe(":8080", withMidllewaresMux)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package markdown
+
+import (
+        "fmt"
+        "strings"
+)
+
+type TokenType string
+
+const (
+        TokenHeader        TokenType = "header"
+        TokenHeader2       TokenType = "header2"
+        TokenHeader3       TokenType = "header3"
+        TokenHeader4       TokenType = "header4"
+        TokenHeader5       TokenType = "header5"
+        TokenHeader6       TokenType = "header6"
+        TokenParagraph     TokenType = "paragraph"
+        TokenListItem      TokenType = "listitem"
+        TokenOrderListItem TokenType = "orderlistitem"
+        TokenCodeBlock     TokenType = "codeblock"
+        TokenEOF           TokenType = "EOF"
+)
+
+type Token struct {
+        Type    TokenType
+        Literal string
 }
+
+type Lexer struct {
+        input  string
+        lines  []string
+        cursor int
+}
+
+func NewLexer(input string) *Lexer <span class="cov8" title="1">{
+        return &amp;Lexer{
+                input:  input,
+                lines:  strings.Split(input, "\n"),
+                cursor: 0,
+        }
+}</span>
+
+func (l *Lexer) NextToken() Token <span class="cov8" title="1">{
+        for l.cursor &lt; len(l.lines) </span><span class="cov8" title="1">{
+                line := strings.TrimSpace(l.lines[l.cursor]) // Trim spaces here!
+                l.cursor++
+
+                if strings.HasPrefix(line, "#") </span><span class="cov8" title="1">{
+                        level := strings.Count(line, "#")
+                        return Token{
+                                Type: TokenType("header" + func() string </span><span class="cov8" title="1">{
+                                        if level == 1 </span><span class="cov8" title="1">{
+                                                return ""
+                                        }</span> else<span class="cov0" title="0"> {
+                                                return fmt.Sprintf("%d", level)
+                                        }</span>
+                                }()),
+                                Literal: strings.TrimSpace(line[level:]),
+                        }
+                } else<span class="cov8" title="1"> if strings.HasPrefix(line, "- ") || strings.HasPrefix(line, "* ") || strings.HasPrefix(line, "+ ") </span><span class="cov8" title="1">{
+                        return Token{Type: TokenListItem, Literal: strings.TrimSpace(line[2:])}
+                }</span> else<span class="cov8" title="1"> if isOrderedListItem(line) </span><span class="cov8" title="1">{
+                        // e.g. "1. List item"
+                        dotIdx := strings.Index(line, ".")
+                        return Token{Type: TokenOrderListItem, Literal: strings.TrimSpace(line[dotIdx+1:])}
+                }</span> else<span class="cov8" title="1"> if strings.HasPrefix(line, "```") </span><span class="cov0" title="0">{
+                        // Start of code block
+                        var codeLines []string
+                        for l.cursor &lt; len(l.lines) </span><span class="cov0" title="0">{
+                                codeLine := l.lines[l.cursor]
+                                l.cursor++
+                                if strings.TrimSpace(codeLine) == "```" </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                                <span class="cov0" title="0">codeLines = append(codeLines, codeLine)</span>
+                        }
+                        <span class="cov0" title="0">return Token{Type: TokenCodeBlock, Literal: strings.Join(codeLines, "\n")}</span>
+                }
+                <span class="cov8" title="1">return Token{Type: TokenParagraph, Literal: strings.TrimSpace(line)}</span>
+        }
+
+        <span class="cov8" title="1">return Token{Type: TokenEOF}</span>
+}
+
+// Helper function for ordered list detection
+func isOrderedListItem(line string) bool <span class="cov8" title="1">{
+        if len(line) &lt; 3 </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        // Find a number followed by a dot and a space
+        <span class="cov8" title="1">for i := 0; i &lt; len(line); i++ </span><span class="cov8" title="1">{
+                if line[i] &lt; '0' || line[i] &gt; '9' </span><span class="cov8" title="1">{
+                        if line[i] == '.' &amp;&amp; i+1 &lt; len(line) &amp;&amp; line[i+1] == ' ' </span><span class="cov8" title="1">{
+                                return i &gt; 0
+                        }</span>
+                        <span class="cov8" title="1">return false</span>
+                }
+        }
+        <span class="cov0" title="0">return false</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package markdown
+
+func MarkdownToHTML(markdown string) string <span class="cov8" title="1">{
+        lexer := NewLexer(markdown)
+        parser := NewParser(lexer)
+        return parser.ToHTML()
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package markdown
+
+import (
+        "fmt"
+        "regexp"
+        "strings"
+)
+
+type NodeType string
+
+const (
+        NodeHeader        NodeType = "header"
+        NodeHeader2       NodeType = "header2"
+        NodeHeader3       NodeType = "header3"
+        NodeHeader4       NodeType = "header4"
+        NodeHeader5       NodeType = "header5"
+        NodeHeader6       NodeType = "header6"
+        NodeParagraph     NodeType = "paragraph"
+        NodeListItem      NodeType = "listitem"
+        NodeOrderListItem NodeType = "orderlistitem"
+        NodeCodeBlock     NodeType = "codeblock"
+)
+
+type Node struct {
+        Type     NodeType
+        Content  string
+        Children []*Node
+}
+
+type Parser struct {
+        lexer  *Lexer
+        tokens []Token
+        cursor int
+}
+
+func NewParser(lexer *Lexer) *Parser <span class="cov8" title="1">{
+        var tokens []Token
+        for </span><span class="cov8" title="1">{
+                token := lexer.NextToken()
+                tokens = append(tokens, token)
+                if token.Type == TokenEOF </span><span class="cov8" title="1">{
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">return &amp;Parser{
+                lexer:  lexer,
+                tokens: tokens,
+                cursor: 0,
+        }</span>
+}
+
+func (p *Parser) Parse() []*Node <span class="cov8" title="1">{
+        var nodes []*Node
+
+        for </span><span class="cov8" title="1">{
+                token := p.peek()
+                if token.Type == TokenEOF </span><span class="cov8" title="1">{
+                        break</span>
+                }
+
+                <span class="cov8" title="1">switch token.Type </span>{
+                case TokenHeader:<span class="cov8" title="1">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader, Content: token.Literal})
+                        p.advance()</span>
+                case TokenHeader2:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader2, Content: token.Literal})
+                        p.advance()</span>
+                case TokenHeader3:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader3, Content: token.Literal})
+                        p.advance()</span>
+                case TokenHeader4:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader4, Content: token.Literal})
+                        p.advance()</span>
+                case TokenHeader5:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader5, Content: token.Literal})
+                        p.advance()</span>
+                case TokenHeader6:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeHeader6, Content: token.Literal})
+                        p.advance()</span>
+                case TokenParagraph:<span class="cov8" title="1">
+                        if token.Literal == "" </span><span class="cov8" title="1">{
+                                p.advance()
+                                continue</span>
+                        }
+                        <span class="cov8" title="1">nodes = append(nodes, &amp;Node{Type: NodeParagraph, Content: token.Literal})
+                        p.advance()</span>
+                case TokenListItem:<span class="cov8" title="1">
+                        listNode := &amp;Node{Type: NodeListItem}
+                        for </span><span class="cov8" title="1">{
+                                token := p.peek()
+                                if token.Type != TokenListItem </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                                <span class="cov8" title="1">listNode.Children = append(listNode.Children, &amp;Node{Type: NodeListItem, Content: token.Literal})
+                                p.advance()
+                                // Stop if next token is a paragraph with empty content (blank line)
+                                if p.peek().Type == TokenParagraph &amp;&amp; p.peek().Literal == "" </span><span class="cov8" title="1">{
+                                        p.advance()
+                                        break</span>
+                                }
+                        }
+                        <span class="cov8" title="1">nodes = append(nodes, listNode)</span>
+                case TokenOrderListItem:<span class="cov8" title="1">
+                        listNode := &amp;Node{Type: NodeOrderListItem}
+                        for </span><span class="cov8" title="1">{
+                                token := p.peek()
+                                if token.Type != TokenOrderListItem </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                                <span class="cov8" title="1">listNode.Children = append(listNode.Children, &amp;Node{Type: NodeOrderListItem, Content: token.Literal})
+                                p.advance()
+                                if p.peek().Type == TokenParagraph &amp;&amp; p.peek().Literal == "" </span><span class="cov8" title="1">{
+                                        p.advance()
+                                        break</span>
+                                }
+                        }
+                        <span class="cov8" title="1">nodes = append(nodes, listNode)</span>
+                case TokenCodeBlock:<span class="cov0" title="0">
+                        nodes = append(nodes, &amp;Node{Type: NodeCodeBlock, Content: token.Literal})
+                        p.advance()</span>
+                default:<span class="cov0" title="0">
+                        p.advance()</span>
+                }
+        }
+
+        <span class="cov8" title="1">return nodes</span>
+}
+
+func formatInline(text string) string <span class="cov8" title="1">{
+        // Bold-italic: ***text*** or ___text___
+        reBoldItalic := regexp.MustCompile(`(\*\*\*|___)([^*_]+?)(\*\*\*|___)`)
+        text = reBoldItalic.ReplaceAllStringFunc(text, func(match string) string </span><span class="cov0" title="0">{
+                if strings.HasPrefix(match, "***") &amp;&amp; strings.HasSuffix(match, "***") </span><span class="cov0" title="0">{
+                        return "&lt;strong&gt;&lt;em&gt;" + match[3:len(match)-3] + "&lt;/em&gt;&lt;/strong&gt;"
+                }</span> else<span class="cov0" title="0"> if strings.HasPrefix(match, "___") &amp;&amp; strings.HasSuffix(match, "___") </span><span class="cov0" title="0">{
+                        return "&lt;strong&gt;&lt;em&gt;" + match[3:len(match)-3] + "&lt;/em&gt;&lt;/strong&gt;"
+                }</span>
+                <span class="cov0" title="0">return match</span>
+        })
+
+        // Bold: **text** or __text__
+        <span class="cov8" title="1">reBold := regexp.MustCompile(`(\*\*|__)([^*_]+?)(\*\*|__)`)
+        text = reBold.ReplaceAllStringFunc(text, func(match string) string </span><span class="cov0" title="0">{
+                if strings.HasPrefix(match, "**") &amp;&amp; strings.HasSuffix(match, "**") </span><span class="cov0" title="0">{
+                        return "&lt;strong&gt;" + match[2:len(match)-2] + "&lt;/strong&gt;"
+                }</span> else<span class="cov0" title="0"> if strings.HasPrefix(match, "__") &amp;&amp; strings.HasSuffix(match, "__") </span><span class="cov0" title="0">{
+                        return "&lt;strong&gt;" + match[2:len(match)-2] + "&lt;/strong&gt;"
+                }</span>
+                <span class="cov0" title="0">return match</span>
+        })
+
+        // Italic: *text* or _text_
+        <span class="cov8" title="1">reItalic := regexp.MustCompile(`(\*|_)([^*_]+?)(\*|_)`)
+        text = reItalic.ReplaceAllStringFunc(text, func(match string) string </span><span class="cov0" title="0">{
+                if strings.HasPrefix(match, "*") &amp;&amp; strings.HasSuffix(match, "*") </span><span class="cov0" title="0">{
+                        return "&lt;em&gt;" + match[1:len(match)-1] + "&lt;/em&gt;"
+                }</span> else<span class="cov0" title="0"> if strings.HasPrefix(match, "_") &amp;&amp; strings.HasSuffix(match, "_") </span><span class="cov0" title="0">{
+                        return "&lt;em&gt;" + match[1:len(match)-1] + "&lt;/em&gt;"
+                }</span>
+                <span class="cov0" title="0">return match</span>
+        })
+
+        // Links: [text](url)
+        <span class="cov8" title="1">reLink := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
+        text = reLink.ReplaceAllString(text, `&lt;a href="$2"&gt;$1&lt;/a&gt;`)
+
+        // Images: ![alt](url)
+        reImage := regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)
+        text = reImage.ReplaceAllString(text, `&lt;img src="$2" alt="$1"&gt;`)
+
+        return text</span>
+}
+
+func (p *Parser) ToHTML() string <span class="cov8" title="1">{
+        nodes := p.Parse()
+        var html string
+        for _, node := range nodes </span><span class="cov8" title="1">{
+                switch node.Type </span>{
+                case NodeHeader:<span class="cov8" title="1">
+                        html += fmt.Sprintf("&lt;h1&gt;%s&lt;/h1&gt;\n", formatInline(node.Content))</span>
+                case NodeHeader2:<span class="cov0" title="0">
+                        html += fmt.Sprintf("&lt;h2&gt;%s&lt;/h2&gt;\n", formatInline(node.Content))</span>
+                case NodeHeader3:<span class="cov0" title="0">
+                        html += fmt.Sprintf("&lt;h3&gt;%s&lt;/h3&gt;\n", formatInline(node.Content))</span>
+                case NodeHeader4:<span class="cov0" title="0">
+                        html += fmt.Sprintf("&lt;h4&gt;%s&lt;/h4&gt;\n", formatInline(node.Content))</span>
+                case NodeHeader5:<span class="cov0" title="0">
+                        html += fmt.Sprintf("&lt;h5&gt;%s&lt;/h5&gt;\n", formatInline(node.Content))</span>
+                case NodeHeader6:<span class="cov0" title="0">
+                        html += fmt.Sprintf("&lt;h6&gt;%s&lt;/h6&gt;\n", formatInline(node.Content))</span>
+                case NodeParagraph:<span class="cov8" title="1">
+                        html += fmt.Sprintf("&lt;p&gt;%s&lt;/p&gt;\n", formatInline(node.Content))</span>
+                case NodeListItem:<span class="cov8" title="1">
+                        html += "&lt;ul&gt;\n"
+                        for _, child := range node.Children </span><span class="cov8" title="1">{
+                                html += fmt.Sprintf("&lt;li&gt;%s&lt;/li&gt;\n", formatInline(child.Content))
+                        }</span>
+                        <span class="cov8" title="1">html += "&lt;/ul&gt;\n"</span>
+                case NodeOrderListItem:<span class="cov8" title="1">
+                        html += "&lt;ol&gt;\n"
+                        for _, child := range node.Children </span><span class="cov8" title="1">{
+                                html += fmt.Sprintf("&lt;li&gt;%s&lt;/li&gt;\n", formatInline(child.Content))
+                        }</span>
+                        <span class="cov8" title="1">html += "&lt;/ol&gt;\n"</span>
+                case NodeCodeBlock:<span class="cov0" title="0">
+                        html += "&lt;pre&gt;&lt;code&gt;" + escapeHTML(node.Content) + "&lt;/code&gt;&lt;/pre&gt;\n"</span>
+                }
+        }
+
+        <span class="cov8" title="1">return html</span>
+}
+func escapeHTML(s string) string <span class="cov0" title="0">{
+        s = strings.ReplaceAll(s, "&amp;", "&amp;amp;")
+        s = strings.ReplaceAll(s, "&lt;", "&amp;lt;")
+        s = strings.ReplaceAll(s, "&gt;", "&amp;gt;")
+        return s
+}</span>
+
+func (p *Parser) peek() Token <span class="cov8" title="1">{
+        return p.tokens[p.cursor]
+}</span>
+
+func (p *Parser) advance() <span class="cov8" title="1">{
+        p.cursor++
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package middlewares
+
+import (
+        "fmt"
+        "net/http"
+        "time"
+)
+
+type Logger struct {
+        handler http.Handler
+}
+
+func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        start := time.Now()
+        l.handler.ServeHTTP(w, r)
+        currentTime, err := time.Parse(time.RFC822, time.Now().Format(time.RFC822))
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">fmt.Printf("[%s]: %s %s %v\n", currentTime, r.Method, r.URL.Path, time.Since(start))</span>
+}
+
+func NewLogger(handler http.Handler) *Logger <span class="cov0" title="0">{
+        return &amp;Logger{handler: handler}
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package repositories
+
+import (
+        "github.com/ViniciusTei/viniciustei-blog/entities"
+        "github.com/ViniciusTei/viniciustei-blog/handlers"
+)
+
+type ArticleRepositoryImpl struct{}
+
+func (r *ArticleRepositoryImpl) LoadArticles(dir string) ([]entities.Article, error) <span class="cov8" title="1">{
+        // Load articles using the existing function
+        articles, err := handlers.LoadMarkdownFiles(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Convert handlers.Article to entities.Article
+        <span class="cov8" title="1">var result []entities.Article
+        for _, a := range articles </span><span class="cov8" title="1">{
+                result = append(result, entities.Article{
+                        Title:   a.Title,
+                        Content: a.Content,
+                        Slug:    a.Slug,
+                })
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+
+func (r *ArticleRepositoryImpl) LoadArticleBySlug(slug string, dir string) (entities.Article, error) <span class="cov8" title="1">{
+        articles, err := r.LoadArticles(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return entities.Article{}, err
+        }</span>
+
+        <span class="cov8" title="1">for _, a := range articles </span><span class="cov8" title="1">{
+                if a.Slug == slug </span><span class="cov8" title="1">{
+                        return a, nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return entities.Article{}, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package usecases
+
+import "github.com/ViniciusTei/viniciustei-blog/entities"
+
+type ArticleRepository interface {
+        LoadArticles(dir string) ([]entities.Article, error)
+        LoadArticleBySlug(slug string, dir string) (entities.Article, error)
+}
+
+type ArticleUseCase struct {
+        Repo ArticleRepository
+}
+
+func (uc *ArticleUseCase) GetAllArticles() ([]entities.Article, error) <span class="cov0" title="0">{
+        return uc.Repo.LoadArticles("articles")
+}</span>
+
+func (uc *ArticleUseCase) GetArticleBySlug(slug string) (entities.Article, error) <span class="cov0" title="0">{
+        return uc.Repo.LoadArticleBySlug(slug, "articles")
+}</span>
 </pre>
 		
 		</div>

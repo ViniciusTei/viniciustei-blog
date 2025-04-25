@@ -23,6 +23,8 @@ func main() {
 	mux.HandleFunc("/", handler.HandleRoot)
 	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
 	mux.HandleFunc("/about", handlers.HandleAbout)
+	mux.HandleFunc("/login", handlers.HandleLogin)
+	mux.HandleFunc("/dashboard", handlers.HandleAbout)
 
 	//middlewares
 	withMidllewaresMux := middlewares.NewLogger(mux)

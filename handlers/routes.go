@@ -118,3 +118,26 @@ func HandleAbout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(
+		"templates/layout.html",
+		"templates/login.html",
+	)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		log.Println("Error parsing template:", err)
+		return
+	}
+
+	data := PageData{
+		Title: "Login",
+	}
+
+	err = tmpl.ExecuteTemplate(w, "layout", data)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		log.Println("Error executing template:", err)
+		return
+	}
+}

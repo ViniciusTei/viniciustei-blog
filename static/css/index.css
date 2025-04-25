@@ -118,3 +118,23 @@ p {
     --padding: 80px;
   }
 }
+
+.center_flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login_form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-width: 500px;
+  padding: 16px;
+}
+
+.input {
+  display: flex;
+  flex-direction: column;
+}
