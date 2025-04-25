@@ -70,13 +70,12 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if we have a token in the cookie
+	var userId, userName string
 	cookie, err := r.Cookie("auth_token")
 	if err == nil {
 		log.Println("Error getting cookies:", err) // yet do nothing
 	}
-	var userId, userName string
-	if cookie != nil {
+	if cookie != nil && cookie.Value != "" {
 		key := []byte("6091835705053067")
 		decrypted, err := utils.Decrypt(key, cookie.Value)
 		if err != nil {
@@ -172,6 +171,14 @@ func HandleAbout(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error executing template:", err)
 		return
 	}
+}
+
+func HandleSignOut(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:  "auth_token",
+		Value: "",
+	})
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {

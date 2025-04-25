@@ -27,6 +27,7 @@ func main() {
 	mux.HandleFunc("/about", handlers.HandleAbout)
 	mux.HandleFunc("/login", handlers.HandleLogin)
 	mux.HandleFunc("POST /signin", handler.HandleSignIn)
+	mux.HandleFunc("/signout", handlers.HandleSignOut)
 	mux.HandleFunc("/", handler.HandleRoot)
 
 	//middlewares
