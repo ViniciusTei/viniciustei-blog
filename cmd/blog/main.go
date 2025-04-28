@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 
@@ -10,13 +11,20 @@ import (
 	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
 )
 
+//go:embed templates/*.html
+var templatesFS embed.FS
+
 func main() {
 	articleRepo := &repositories.ArticleRepositoryImpl{}
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
 	authRepo := &repositories.AuthRepositoryImpl{}
 	authUseCase := &usecases.AuthUseCase{Repo: authRepo}
 
-	handler := &handlers.Handler{ArticleUseCase: articleUseCase, AuthUseCase: authUseCase}
+	handler := &handlers.Handler{
+		ArticleUseCase: articleUseCase,
+		AuthUseCase:    authUseCase,
+		Templates:      templatesFS,
+	}
 
 	mux := http.NewServeMux()
 
@@ -24,8 +32,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
-	mux.HandleFunc("/about", handlers.HandleAbout)
-	mux.HandleFunc("/login", handlers.HandleLogin)
+	mux.HandleFunc("/about", handler.HandleAbout)
+	mux.HandleFunc("/login", handler.HandleLogin)
 	mux.HandleFunc("POST /signin", handler.HandleSignIn)
 	mux.HandleFunc("/signout", handlers.HandleSignOut)
 	mux.HandleFunc("/", handler.HandleRoot)

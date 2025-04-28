@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -19,6 +20,7 @@ type PageData struct {
 }
 
 type Handler struct {
+	Templates      embed.FS
 	ArticleUseCase *usecases.ArticleUseCase
 	AuthUseCase    *usecases.AuthUseCase
 }
@@ -63,7 +65,11 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/layout.html", "templates/index.html")
+	tmpl, err := template.ParseFS(
+		h.Templates,
+		"templates/layout.html",
+		"templates/index.html",
+	)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Println("Error parsing template:", err)
@@ -129,7 +135,8 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(
+	tmpl, err := template.ParseFS(
+		h.Templates,
 		"templates/layout.html",
 		"templates/articles.html",
 	)
@@ -150,8 +157,9 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleAbout(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(
+func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFS(
+		h.Templates,
 		"templates/layout.html",
 		"templates/about.html",
 	)
@@ -182,8 +190,9 @@ func HandleSignOut(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
-func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(
+func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFS(
+		h.Templates,
 		"templates/layout.html",
 		"templates/login.html",
 	)
