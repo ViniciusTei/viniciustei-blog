@@ -1,8 +1,8 @@
 run:
-	go run *.go
+	go run ./cmd/blog
 
 build:
-	go build -o dist/server
+	go build -o dist/server ./cmd/blog
 
 test:
 	go test -v ./...
