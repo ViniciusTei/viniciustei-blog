@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ViniciusTei/viniciustei-blog/repositories"
+	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 )
 
 func TestLoadArticles(t *testing.T) {

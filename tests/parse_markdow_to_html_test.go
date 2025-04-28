@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ViniciusTei/viniciustei-blog/markdown"
+	"github.com/ViniciusTei/viniciustei-blog/internal/markdown"
 )
 
 func TestParseMarkdownToHTML(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ViniciusTei/viniciustei-blog/markdown"
+	"github.com/ViniciusTei/viniciustei-blog/internal/markdown"
 )
 
 type Article struct {

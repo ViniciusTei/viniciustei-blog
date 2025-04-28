@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ViniciusTei/viniciustei-blog/handlers"
+	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 )
 
 func TestLoadMarkdownFiles(t *testing.T) {

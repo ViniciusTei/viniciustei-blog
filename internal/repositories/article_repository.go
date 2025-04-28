@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"github.com/ViniciusTei/viniciustei-blog/entities"
-	"github.com/ViniciusTei/viniciustei-blog/handlers"
+	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
+	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 )
 
 type ArticleRepositoryImpl struct{}

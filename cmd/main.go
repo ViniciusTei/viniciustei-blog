@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ViniciusTei/viniciustei-blog/handlers"
-	"github.com/ViniciusTei/viniciustei-blog/middlewares"
-	"github.com/ViniciusTei/viniciustei-blog/repositories"
-	"github.com/ViniciusTei/viniciustei-blog/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
+	"github.com/ViniciusTei/viniciustei-blog/internal/middlewares"
+	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
+	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
 )
 
 func main() {

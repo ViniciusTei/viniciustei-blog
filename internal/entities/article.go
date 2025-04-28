@@ -5,8 +5,3 @@ type Article struct {
 	Content string
 	Slug    string
 }
-
-type User struct {
-	UserId   string
-	UserName string
-}

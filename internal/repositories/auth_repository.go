@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ViniciusTei/viniciustei-blog/entities"
+	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 

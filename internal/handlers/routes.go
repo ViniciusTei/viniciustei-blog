@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ViniciusTei/viniciustei-blog/entities"
-	"github.com/ViniciusTei/viniciustei-blog/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
+	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 
