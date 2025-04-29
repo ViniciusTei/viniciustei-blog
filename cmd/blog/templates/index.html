@@ -1,5 +1,4 @@
 {{ define "content" }}
-<main>
   <h1>Bem vindo ao meu Blog</h1>
   <p class="main_description">
     Um espaço pessoal onde compartilho meus pensamentos sobre desenvolvimento web, design e tecnologia.
@@ -14,11 +13,29 @@
     <ul class="articles_list">
       {{ range .Articles}}
         <li>
-          <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+          <img src="{{ .Image }}" alt="{{ .Title }}" class="article_image" />
+
+          <div class="article_content">
+            <h3 class="article_title">
+              <div>
+                <p>{{ .Category }}</p>
+                <p>{{ .ReadTime }}</p>
+              </div>
+              <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+            </h3>
+            <p class="article_description">
+              {{ .Description }}
+            </p>
+            <div class="article_footer">
+              <p class="article_date">
+                {{ .Date.Format "02 de janeiro de 2006" }}
+              </p>
+              <a href="/article/{{ .Slug }}">Ler mais</a>
+            </div>
+          </div>
         </li>
       {{ end }}
     </ul>
   </section>
-</main>
 {{ end }}
 

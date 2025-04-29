@@ -31,8 +31,8 @@
 
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
-<body>
-  <nav class="nav_container">
+<body class="layout">
+  <nav class="header nav_container">
     <ul>
       <li><a href="/">Início</a></li>
       <li><a href="/about">Sobre</a></li>
@@ -50,7 +50,13 @@
   </nav>
   <hr/>
 
+  <main class="main">
   {{ block "content" . }}{{ end }}
+  </main>
+
+  <footer class="footer">
+    &copy; 2025 Vinicius Teixeira. Todos os direitos reservados.
+  </footer>
 </body>
 </html>
 {{ end }}
