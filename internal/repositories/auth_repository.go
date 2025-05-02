@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
@@ -15,12 +17,19 @@ type AuthRepositoryImpl struct {
 
 func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
 	var user entities.User
-	err := r.Db.SelectOne("SELECT * FROM users WHERE username = $1 AND password = $2", user)
+
+	log.Printf("Trying connect user: %v\n", username)
+	err := r.
+		Db.
+		Conn.
+		QueryRow(context.Background(), "SELECT * FROM usuarios WHERE email = $1", username).
+		Scan(&user.Id, &user.Nome, &user.Email, &user.Password)
 	if err != nil {
 		//TODO: handle SQL error and return a more user-friendly error
 		return "", err
 	}
 
+	log.Printf("User found! Validate user pass: %v\n", user)
 	if user.Email == username && user.Password == password {
 		key := []byte("6091835705053067")
 		token, err := utils.Encrypt(key, fmt.Sprintf("%d:%s", user.Id, user.Email))

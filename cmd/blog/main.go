@@ -22,8 +22,8 @@ func main() {
 	}
 
 	// Repositories
-	articleRepo := &repositories.ArticleRepositoryImpl{Db: database}
-	authRepo := &repositories.AuthRepositoryImpl{Db: database}
+	articleRepo := &repositories.ArticleRepositoryImpl{Db: &database}
+	authRepo := &repositories.AuthRepositoryImpl{Db: &database}
 
 	// Use Cases
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}

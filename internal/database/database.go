@@ -11,18 +11,18 @@ import (
 )
 
 type DatabaseImpl struct {
-	conn *pgxpool.Pool
+	Conn *pgxpool.Pool
 }
 
-func Conn() (*DatabaseImpl, error) {
-	databaseUrl := os.Getenv("DATABASE_URL")
-	if databaseUrl == "" {
-		return nil, fmt.Errorf("Missing DATABASE_URL env")
+func Conn() (DatabaseImpl, error) {
+	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalln("Unable to parse DATABASE_URL:", err)
 	}
 
-	dbpool, err := pgxpool.New(context.Background(), databaseUrl)
+	dbpool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
+		log.Fatalln("Unable to create connection pool:", err)
 	}
 
 	databaseConfig := dbpool.Config()
@@ -31,17 +31,17 @@ func Conn() (*DatabaseImpl, error) {
 		databaseConfig.ConnConfig.Host,
 		databaseConfig.ConnConfig.Database,
 	)
-	return &DatabaseImpl{
-		conn: dbpool,
+	return DatabaseImpl{
+		Conn: dbpool,
 	}, nil
 }
 
 func (d *DatabaseImpl) SelectAll(query string, args ...interface{}) ([][]interface{}, error) {
-	if d.conn == nil {
+	if d.Conn == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
 
-	rows, err := d.conn.Query(context.Background(), query, args...)
+	rows, err := d.Conn.Query(context.Background(), query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,28 +60,23 @@ func (d *DatabaseImpl) SelectAll(query string, args ...interface{}) ([][]interfa
 	return result, nil
 }
 
-func (d *DatabaseImpl) SelectOne(query string, args ...interface{}) ([]interface{}, error) {
-	log.Printf("Query: %s, Args: %v\n", query, args)
-	if d.conn == nil {
-		return nil, fmt.Errorf("database connection is not initialized")
+func (d *DatabaseImpl) SelectFrom(query string, property string, from string, dest ...interface{}) error {
+	log.Printf("Query: %s, Args: %s\n", query, property)
+	if d.Conn == nil {
+		return fmt.Errorf("database connection is not initialized")
 	}
 
-	row := d.conn.QueryRow(context.Background(), query, args...)
-	var dest []interface{}
-	err := row.Scan(dest...)
-	if err != nil {
-		return nil, err
-	}
-	return dest, nil
+	err := d.Conn.QueryRow(context.Background(), query, property, from).Scan(dest...)
+	return err
 }
 
 func (d *DatabaseImpl) Insert(query string, args ...interface{}) error {
 	log.Printf("Query: %s, Args: %v\n", query, args)
-	if d.conn == nil {
+	if d.Conn == nil {
 		return fmt.Errorf("database connection is not initialized")
 	}
 
-	_, err := d.conn.Exec(context.Background(), query, args...)
+	_, err := d.Conn.Exec(context.Background(), query, args...)
 	if err != nil {
 		return err
 	}
