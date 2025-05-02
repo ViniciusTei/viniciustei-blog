@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	db "github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 	"github.com/ViniciusTei/viniciustei-blog/internal/middlewares"
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
@@ -15,9 +16,15 @@ import (
 var templatesFS embed.FS
 
 func main() {
-	articleRepo := &repositories.ArticleRepositoryImpl{}
+	database := &db.DatabaseImpl{}
+	database.Conn()
+
+	// Repositories
+	articleRepo := &repositories.ArticleRepositoryImpl{Db: database}
+	authRepo := &repositories.AuthRepositoryImpl{Db: database}
+
+	// Use Cases
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
-	authRepo := &repositories.AuthRepositoryImpl{}
 	authUseCase := &usecases.AuthUseCase{Repo: authRepo}
 
 	handler := &handlers.Handler{

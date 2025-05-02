@@ -4,21 +4,26 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 
-type AuthRepositoryImpl struct{}
+type AuthRepositoryImpl struct {
+	Db *database.DatabaseImpl
+}
 
 func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
-	if username == "viniciust" && password == "123456" {
-		user := entities.User{
-			UserId:   "viniciust",
-			UserName: "viniciust",
-		}
+	var user entities.User
+	err := r.Db.SelectOne("SELECT * FROM users WHERE username = $1 AND password = $2", user)
+	if err != nil {
+		//TODO: handle SQL error and return a more user-friendly error
+		return "", err
+	}
 
+	if user.Email == username && user.Password == password {
 		key := []byte("6091835705053067")
-		token, err := utils.Encrypt(key, fmt.Sprintf("%s:%s", user.UserId, user.UserName))
+		token, err := utils.Encrypt(key, fmt.Sprintf("%d:%s", user.Id, user.Email))
 		if err != nil {
 			return "", err
 		}

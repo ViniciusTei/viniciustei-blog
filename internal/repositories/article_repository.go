@@ -3,11 +3,14 @@ package repositories
 import (
 	"time"
 
+	"github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
 	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 )
 
-type ArticleRepositoryImpl struct{}
+type ArticleRepositoryImpl struct {
+	Db *database.DatabaseImpl
+}
 
 // TODO: implement a database to store article metadata
 func (r *ArticleRepositoryImpl) LoadArticles(dir string) ([]entities.Article, error) {
