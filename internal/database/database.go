@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,11 +24,10 @@ func Conn() (*DatabaseImpl, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
-	defer dbpool.Close()
 
 	databaseConfig := dbpool.Config()
 	log.Printf("User %s Connected Database: <%s>/<%s>\n",
-		databaseConfig.ConnConfig.User,
+		strings.Split(databaseConfig.ConnConfig.User, "@")[0],
 		databaseConfig.ConnConfig.Host,
 		databaseConfig.ConnConfig.Database,
 	)
@@ -60,20 +60,19 @@ func (d *DatabaseImpl) SelectAll(query string, args ...interface{}) ([][]interfa
 	return result, nil
 }
 
-func (d *DatabaseImpl) SelectOne(query string, args ...interface{}) error {
+func (d *DatabaseImpl) SelectOne(query string, args ...interface{}) ([]interface{}, error) {
 	log.Printf("Query: %s, Args: %v\n", query, args)
 	if d.conn == nil {
-		return fmt.Errorf("database connection is not initialized")
+		return nil, fmt.Errorf("database connection is not initialized")
 	}
 
 	row := d.conn.QueryRow(context.Background(), query, args...)
-	var columns []interface{}
-	err := row.Scan(&columns)
+	var dest []interface{}
+	err := row.Scan(dest...)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	return nil
+	return dest, nil
 }
 
 func (d *DatabaseImpl) Insert(query string, args ...interface{}) error {
