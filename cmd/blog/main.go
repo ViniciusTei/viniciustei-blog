@@ -16,8 +16,10 @@ import (
 var templatesFS embed.FS
 
 func main() {
-	database := &db.DatabaseImpl{}
-	database.Conn()
+	database, err := db.Conn()
+	if err != nil {
+		panic(err)
+	}
 
 	// Repositories
 	articleRepo := &repositories.ArticleRepositoryImpl{Db: database}

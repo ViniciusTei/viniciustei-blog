@@ -12,15 +12,20 @@ type DatabaseImpl struct {
 	conn *pgxpool.Pool
 }
 
-func (d *DatabaseImpl) Conn() {
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+func Conn() (*DatabaseImpl, error) {
+	databaseUrl := os.Getenv("DATABASE_URL")
+	if databaseUrl == "" {
+		return nil, fmt.Errorf("Missing DATABASE_URL env")
+	}
+
+	dbpool, err := pgxpool.New(context.Background(), databaseUrl)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
 	defer dbpool.Close()
-	d = &DatabaseImpl{
+	return &DatabaseImpl{
 		conn: dbpool,
-	}
+	}, nil
 }
 
 func (d *DatabaseImpl) SelectAll(query string, args ...interface{}) ([][]interface{}, error) {
