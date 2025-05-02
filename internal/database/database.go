@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,6 +24,13 @@ func Conn() (*DatabaseImpl, error) {
 		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
 	defer dbpool.Close()
+
+	databaseConfig := dbpool.Config()
+	log.Printf("User %s Connected Database: <%s>/<%s>\n",
+		databaseConfig.ConnConfig.User,
+		databaseConfig.ConnConfig.Host,
+		databaseConfig.ConnConfig.Database,
+	)
 	return &DatabaseImpl{
 		conn: dbpool,
 	}, nil
@@ -48,10 +56,12 @@ func (d *DatabaseImpl) SelectAll(query string, args ...interface{}) ([][]interfa
 		result = append(result, columns)
 	}
 
+	log.Printf("Query: %s, Args: %v, Result: %v\n", query, args, result)
 	return result, nil
 }
 
 func (d *DatabaseImpl) SelectOne(query string, args ...interface{}) error {
+	log.Printf("Query: %s, Args: %v\n", query, args)
 	if d.conn == nil {
 		return fmt.Errorf("database connection is not initialized")
 	}
@@ -67,6 +77,7 @@ func (d *DatabaseImpl) SelectOne(query string, args ...interface{}) error {
 }
 
 func (d *DatabaseImpl) Insert(query string, args ...interface{}) error {
+	log.Printf("Query: %s, Args: %v\n", query, args)
 	if d.conn == nil {
 		return fmt.Errorf("database connection is not initialized")
 	}
