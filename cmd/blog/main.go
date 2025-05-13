@@ -16,9 +16,6 @@ import (
 //go:embed templates/*.html
 var templatesFS embed.FS
 
-//go:embed static/*
-var staticFS embed.FS
-
 func main() {
 	config := utils.LoadConfig()
 	database, err := db.Conn(config.DBUrl)
@@ -41,14 +38,14 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	fs := http.FileServer(http.FS(staticFS))
+	fs := http.FileServer(http.Dir("public"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
-	mux.HandleFunc("/about", handler.HandleAbout)
-	mux.HandleFunc("/login", handler.HandleLogin)
+	mux.HandleFunc("GET /article/{slug}", handler.HandleArticles)
+	mux.HandleFunc("GET /about", handler.HandleAbout)
+	mux.HandleFunc("GET /login", handler.HandleLogin)
 	mux.HandleFunc("POST /signin", handler.HandleSignIn)
-	mux.HandleFunc("/signout", handlers.HandleSignOut)
+	mux.HandleFunc("POST /signout", handlers.HandleSignOut)
 	mux.HandleFunc("/", handler.HandleRoot)
 
 	//middlewares
