@@ -23,9 +23,10 @@ func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
 		Db.
 		Conn.
 		QueryRow(context.Background(), "SELECT * FROM usuarios WHERE email = $1", username).
-		Scan(&user.Id, &user.Nome, &user.Email, &user.Password)
+		Scan(&user.Id, &user.Nome, &user.Email, &user.Password, &user.CriadoEm)
 	if err != nil {
 		//TODO: handle SQL error and return a more user-friendly error
+		log.Printf("Database query error: %v\n", err)
 		return "", err
 	}
 

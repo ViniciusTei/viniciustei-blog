@@ -12,9 +12,9 @@ type ArticleUseCase struct {
 }
 
 func (uc *ArticleUseCase) GetAllArticles() ([]entities.Article, error) {
-	return uc.Repo.LoadArticles("static/articles")
+	return uc.Repo.LoadArticles("cmd/blog/static/articles")
 }
 
 func (uc *ArticleUseCase) GetArticleBySlug(slug string) (entities.Article, error) {
-	return uc.Repo.LoadArticleBySlug(slug, "static/articles")
+	return uc.Repo.LoadArticleBySlug(slug, "cmd/blog/static/articles")
 }

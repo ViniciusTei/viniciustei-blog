@@ -20,7 +20,7 @@ type PageData struct {
 }
 
 type Handler struct {
-	Templates      embed.FS
+	Views          embed.FS
 	ArticleUseCase *usecases.ArticleUseCase
 	AuthUseCase    *usecases.AuthUseCase
 }
@@ -66,7 +66,7 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl, err := template.ParseFS(
-		h.Templates,
+		h.Views,
 		"templates/layout.html",
 		"templates/index.html",
 	)
@@ -136,7 +136,7 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl, err := template.ParseFS(
-		h.Templates,
+		h.Views,
 		"templates/layout.html",
 		"templates/articles.html",
 	)
@@ -159,7 +159,7 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFS(
-		h.Templates,
+		h.Views,
 		"templates/layout.html",
 		"templates/about.html",
 	)
@@ -192,7 +192,7 @@ func HandleSignOut(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFS(
-		h.Templates,
+		h.Views,
 		"templates/layout.html",
 		"templates/login.html",
 	)

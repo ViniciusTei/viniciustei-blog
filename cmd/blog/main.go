@@ -10,13 +10,18 @@ import (
 	"github.com/ViniciusTei/viniciustei-blog/internal/middlewares"
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 
 //go:embed templates/*.html
 var templatesFS embed.FS
 
+//go:embed static/*
+var staticFS embed.FS
+
 func main() {
-	database, err := db.Conn()
+	config := utils.LoadConfig()
+	database, err := db.Conn(config.DBUrl)
 	if err != nil {
 		panic(err)
 	}
@@ -32,12 +37,11 @@ func main() {
 	handler := &handlers.Handler{
 		ArticleUseCase: articleUseCase,
 		AuthUseCase:    authUseCase,
-		Templates:      templatesFS,
+		Views:          templatesFS,
 	}
 
 	mux := http.NewServeMux()
-
-	fs := http.FileServer(http.Dir("static"))
+	fs := http.FileServer(http.FS(staticFS))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	mux.HandleFunc("/article/{slug}", handler.HandleArticles)
@@ -50,6 +54,6 @@ func main() {
 	//middlewares
 	withMidllewaresMux := middlewares.NewLogger(middlewares.NewResponseHeader(mux, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"))
 
-	fmt.Println("Starting server on :8080")
-	http.ListenAndServe(":8080", withMidllewaresMux)
+	fmt.Printf("Starting server on %s\n", config.Port)
+	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), withMidllewaresMux)
 }
