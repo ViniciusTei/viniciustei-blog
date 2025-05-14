@@ -22,32 +22,6 @@ type PageData struct {
 type Handler struct {
 	Views          embed.FS
 	ArticleUseCase *usecases.ArticleUseCase
-	AuthUseCase    *usecases.AuthUseCase
-}
-
-func (h *Handler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-
-	token, err := h.AuthUseCase.SignIn(username, password)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		log.Println("Error signing in:", err)
-		return
-	}
-
-	// Set the token in the cookie and redirect to the root
-	http.SetCookie(w, &http.Cookie{
-		Name:  "auth_token",
-		Value: token,
-	})
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
@@ -180,14 +154,6 @@ func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error executing template:", err)
 		return
 	}
-}
-
-func HandleSignOut(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name:  "auth_token",
-		Value: "",
-	})
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {

@@ -23,17 +23,17 @@ func main() {
 		panic(err)
 	}
 
-	// Repositories
-	articleRepo := &repositories.ArticleRepositoryImpl{Db: &database}
+	articleRepo := repositories.NewArticleRepository(&database, "cmd/blog/static/articles")
 	authRepo := &repositories.AuthRepositoryImpl{Db: &database}
 
-	// Use Cases
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
 	authUseCase := &usecases.AuthUseCase{Repo: authRepo}
 
+	uc := handlers.NewUserController(authUseCase)
+	ac := handlers.NewArticleController(articleUseCase, templatesFS)
+
 	handler := &handlers.Handler{
 		ArticleUseCase: articleUseCase,
-		AuthUseCase:    authUseCase,
 		Views:          templatesFS,
 	}
 
@@ -41,11 +41,12 @@ func main() {
 	fs := http.FileServer(http.Dir("public"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	mux.HandleFunc("GET /article/{slug}", handler.HandleArticles)
+	uc.Pages(mux)
+	uc.Routes(mux)
+	ac.Pages(mux)
+
 	mux.HandleFunc("GET /about", handler.HandleAbout)
 	mux.HandleFunc("GET /login", handler.HandleLogin)
-	mux.HandleFunc("POST /signin", handler.HandleSignIn)
-	mux.HandleFunc("POST /signout", handlers.HandleSignOut)
 	mux.HandleFunc("/", handler.HandleRoot)
 
 	//middlewares

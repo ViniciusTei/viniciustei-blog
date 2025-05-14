@@ -9,13 +9,21 @@ import (
 )
 
 type ArticleRepositoryImpl struct {
-	Db *database.DatabaseImpl
+	Db  *database.DatabaseImpl
+	dir string
+}
+
+func NewArticleRepository(db *database.DatabaseImpl, dir string) *ArticleRepositoryImpl {
+	return &ArticleRepositoryImpl{
+		Db:  db,
+		dir: dir,
+	}
 }
 
 // TODO: implement a database to store article metadata
-func (r *ArticleRepositoryImpl) LoadArticles(dir string) ([]entities.Article, error) {
+func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
 	// Load articles using the existing function
-	articles, err := handlers.LoadMarkdownFiles(dir)
+	articles, err := handlers.LoadMarkdownFiles(r.dir)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +46,8 @@ func (r *ArticleRepositoryImpl) LoadArticles(dir string) ([]entities.Article, er
 	return result, nil
 }
 
-func (r *ArticleRepositoryImpl) LoadArticleBySlug(slug string, dir string) (entities.Article, error) {
-	articles, err := r.LoadArticles(dir)
+func (r *ArticleRepositoryImpl) LoadArticleBySlug(slug string) (entities.Article, error) {
+	articles, err := r.LoadArticles()
 	if err != nil {
 		return entities.Article{}, err
 	}
