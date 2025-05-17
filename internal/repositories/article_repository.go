@@ -9,14 +9,12 @@ import (
 )
 
 type ArticleRepositoryImpl struct {
-	Db  *database.DatabaseImpl
-	dir string
+	Db *database.DatabaseImpl
 }
 
-func NewArticleRepository(db *database.DatabaseImpl, dir string) *ArticleRepositoryImpl {
+func NewArticleRepository(db *database.DatabaseImpl) *ArticleRepositoryImpl {
 	return &ArticleRepositoryImpl{
-		Db:  db,
-		dir: dir,
+		Db: db,
 	}
 }
 

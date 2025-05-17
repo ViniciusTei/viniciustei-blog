@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -20,13 +19,13 @@ type PageData struct {
 }
 
 type Handler struct {
-	Views          embed.FS
 	ArticleUseCase *usecases.ArticleUseCase
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 	// The "/" pattern matches everything, so we need to check
 	// that we're at the root here.
+	log.Println("Root page", r.URL.Path)
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -39,10 +38,9 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFS(
-		h.Views,
-		"templates/layout.html",
-		"templates/index.html",
+	tmpl, err := template.ParseFiles(
+		"static/templates/layout.html",
+		"static/templates/index.html",
 	)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -75,6 +73,7 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		UserName: userName,
 	}
 
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = tmpl.ExecuteTemplate(w, "layout", data)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -109,8 +108,7 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFS(
-		h.Views,
+	tmpl, err := template.ParseFiles(
 		"templates/layout.html",
 		"templates/articles.html",
 	)
@@ -132,8 +130,7 @@ func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFS(
-		h.Views,
+	tmpl, err := template.ParseFiles(
 		"templates/layout.html",
 		"templates/about.html",
 	)
@@ -157,8 +154,8 @@ func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFS(
-		h.Views,
+	log.Println("Login page")
+	tmpl, err := template.ParseFiles(
 		"templates/layout.html",
 		"templates/login.html",
 	)

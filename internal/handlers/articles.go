@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -11,13 +10,11 @@ import (
 
 type ArticleController struct {
 	articleUseCase *usecases.ArticleUseCase
-	views          embed.FS
 }
 
-func NewArticleController(articleUseCase *usecases.ArticleUseCase, templatesFS embed.FS) *ArticleController {
+func NewArticleController(articleUseCase *usecases.ArticleUseCase) *ArticleController {
 	return &ArticleController{
 		articleUseCase: articleUseCase,
-		views:          templatesFS,
 	}
 }
 
@@ -44,8 +41,7 @@ func (h *ArticleController) handleArticles(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	tmpl, err := template.ParseFS(
-		h.views,
+	tmpl, err := template.ParseFiles(
 		"templates/layout.html",
 		"templates/articles.html",
 	)
