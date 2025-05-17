@@ -31,7 +31,8 @@ func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
 	}
 
 	log.Printf("User found! Validate user pass: %v\n", user)
-	if user.Email == username && user.Password == password {
+	if user.Email == username && utils.CompareHashText(password, user.Password) {
+		//TODO: use a more secure key management system
 		key := []byte("6091835705053067")
 		token, err := utils.Encrypt(key, fmt.Sprintf("%d:%s", user.Id, user.Email))
 		if err != nil {

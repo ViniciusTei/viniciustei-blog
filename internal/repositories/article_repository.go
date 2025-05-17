@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"time"
+	"context"
+	"log"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
-	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 )
 
 type ArticleRepositoryImpl struct {
@@ -20,14 +20,29 @@ func NewArticleRepository(db *database.DatabaseImpl, dir string) *ArticleReposit
 	}
 }
 
-// TODO: implement a database to store article metadata
 func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
-	// Load articles using the existing function
-	articles, err := handlers.LoadMarkdownFiles(r.dir)
+	rows, err := r.
+		Db.
+		Conn.
+		Query(context.Background(), "SELECT * FROM artigos")
 	if err != nil {
+		//TODO: handle SQL error and return a more user-friendly error
+		log.Printf("Database query error: %v\n", err)
 		return nil, err
 	}
+	defer rows.Close()
 
+	var articles []entities.ArticleModel
+
+	for rows.Next() {
+		var a entities.ArticleModel
+		err := rows.Scan(&a.Id, &a.Title, &a.Content, &a.CriadoEm, &a.AtualizadoEm, &a.AuthorId, &a.Slug)
+		if err != nil {
+			log.Printf("Error scanning row: %v\n", err)
+			return nil, err
+		}
+		articles = append(articles, a)
+	}
 	// Convert handlers.Article to entities.Article
 	var result []entities.Article
 	for _, a := range articles {
@@ -38,7 +53,7 @@ func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
 			Image:       "https://placehold.co/600x400/png",
 			Category:    "General",
 			ReadTime:    "5 min",
-			Date:        time.Now(),
+			Date:        a.CriadoEm,
 			Description: "This is a sample description for the article.",
 		})
 	}

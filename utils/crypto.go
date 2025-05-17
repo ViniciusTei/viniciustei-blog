@@ -6,6 +6,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"io"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Encrypt(key []byte, plaintext string) (string, error) {
@@ -57,4 +59,14 @@ func Decrypt(key []byte, encrypted string) (string, error) {
 	}
 
 	return string(plaintextByte), nil
+}
+
+func HashText(text string) (string, error) {
+	b, err := bcrypt.GenerateFromPassword([]byte(text), 14)
+	return string(b), err
+}
+
+func CompareHashText(text, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(text))
+	return err == nil
 }
