@@ -28,7 +28,7 @@ func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
 	err := r.
 		db.
 		Conn.
-		QueryRow(context.Background(), "SELECT * FROM usuarios WHERE email = $1", username).
+		QueryRow(context.Background(), "SELECT id, nome, email, senha, criado_em FROM usuarios WHERE email = $1", username).
 		Scan(&user.Id, &user.Nome, &user.Email, &user.Password, &user.CriadoEm)
 	if err != nil {
 		//TODO: handle SQL error and return a more user-friendly error
