@@ -22,6 +22,9 @@ func main() {
 	}
 
 	articleRepo := repositories.NewArticleRepository(&database)
+	authRepo := repositories.NewAuthRepository(&database)
+
+	userController := handlers.NewUserController(authRepo)
 
 	handler := &handlers.Handler{
 		ArticleUseCase: articleRepo,
@@ -37,6 +40,8 @@ func main() {
 	r.HandleFunc("/", handler.HandleRoot)
 	r.HandleFunc("/about", handler.HandleAbout)
 	r.HandleFunc("/login", handler.HandleLogin)
+
+	userController.Routes("/user", r)
 
 	fs := http.FileServer(http.Dir("static"))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))

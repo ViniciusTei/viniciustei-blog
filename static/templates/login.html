@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="center_flex">
-  <form action="/signin" method="POST" class="login_form">
+  <form action="/user/signin" method="POST" class="login_form">
     <h1>Login</h1>
     <div class="input">
       <label for="username">Usuário:</label>
@@ -13,6 +13,9 @@
     </div>
 
     <button type="submit">Entrar</button>
+    {{ if .Error }}
+      <p class="error_message">{{ .Error }}</p>
+    {{ end }}
     
   </form>
 </div>

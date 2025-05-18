@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,10 +24,9 @@ func (uc *UserController) Pages(mux *mux.Router) {
 	//mux.HandleFunc("GET /users", uc.HandleApiUsers)
 }
 
-func (uc *UserController) Routes(mux *mux.Router) {
-	//mux.HandleFunc("POST /api/users", uc.HandleApiUsers)
-	mux.HandleFunc("/signin", uc.signIn).Methods("POST")
-	mux.HandleFunc("/signout", uc.signOut).Methods("POST")
+func (uc *UserController) Routes(prefix string, mux *mux.Router) {
+	mux.HandleFunc(fmt.Sprintf("%s/signin", prefix), uc.signIn).Methods(http.MethodPost)
+	mux.HandleFunc(fmt.Sprintf("%s/singout", prefix), uc.signOut).Methods(http.MethodPost)
 }
 
 func (uc *UserController) signOut(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +49,9 @@ func (h *UserController) signIn(w http.ResponseWriter, r *http.Request) {
 	token, err := h.authUseCase.SignIn(username, password)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		log.Println("Error signing in:", err)
+		http.Redirect(w, r, "/login?error=Invalid+credentials", http.StatusSeeOther)
+		log.Printf("Error signing in user %s\n", username)
+		log.Println("> Error:", err)
 		return
 	}
 

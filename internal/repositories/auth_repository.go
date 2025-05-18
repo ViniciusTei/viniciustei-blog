@@ -12,7 +12,13 @@ import (
 )
 
 type AuthRepositoryImpl struct {
-	Db *database.DatabaseImpl
+	db *database.DatabaseImpl
+}
+
+func NewAuthRepository(db *database.DatabaseImpl) *AuthRepositoryImpl {
+	return &AuthRepositoryImpl{
+		db: db,
+	}
 }
 
 func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
@@ -20,7 +26,7 @@ func (r *AuthRepositoryImpl) SignIn(username, password string) (string, error) {
 
 	log.Printf("Trying connect user: %v\n", username)
 	err := r.
-		Db.
+		db.
 		Conn.
 		QueryRow(context.Background(), "SELECT * FROM usuarios WHERE email = $1", username).
 		Scan(&user.Id, &user.Nome, &user.Email, &user.Password, &user.CriadoEm)

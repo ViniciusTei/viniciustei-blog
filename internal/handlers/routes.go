@@ -15,6 +15,7 @@ type PageData struct {
 	Articles []entities.Article
 	UserId   string
 	UserName string
+	Error    string
 }
 
 type Handler struct {
@@ -76,9 +77,10 @@ func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	log.Println("Login page")
+	err := r.URL.Query().Get("error")
 	data := PageData{
 		Title: "Login",
+		Error: err,
 	}
 
 	utils.RenderTemplate(w, "login.html", data)
