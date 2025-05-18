@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/gorilla/mux"
 )
 
@@ -15,12 +15,12 @@ type ArticlePage struct {
 }
 
 type ArticleController struct {
-	articleUseCase *usecases.ArticleUseCase
+	article *repositories.ArticleRepositoryImpl
 }
 
-func NewArticleController(articleUseCase *usecases.ArticleUseCase) *ArticleController {
+func NewArticleController(articleUseCase *repositories.ArticleRepositoryImpl) *ArticleController {
 	return &ArticleController{
-		articleUseCase: articleUseCase,
+		article: articleUseCase,
 	}
 }
 
@@ -35,7 +35,7 @@ func (h *ArticleController) handleArticles(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	article, err := h.articleUseCase.GetArticleBySlug(slug)
+	article, err := h.article.LoadArticleBySlug(slug)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Println("Error getting article:", err)

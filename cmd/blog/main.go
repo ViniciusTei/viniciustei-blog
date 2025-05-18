@@ -10,7 +10,6 @@ import (
 	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
 	"github.com/ViniciusTei/viniciustei-blog/internal/middlewares"
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
-	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
 	mux "github.com/gorilla/mux"
 )
@@ -23,10 +22,9 @@ func main() {
 	}
 
 	articleRepo := repositories.NewArticleRepository(&database)
-	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
 
 	handler := &handlers.Handler{
-		ArticleUseCase: articleUseCase,
+		ArticleUseCase: articleRepo,
 	}
 
 	r := mux.NewRouter()
@@ -36,11 +34,12 @@ func main() {
 	r.Use(middlewares.NewResponseHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0").ServeHTTP)
 	r.Use(mux.CORSMethodMiddleware(r))
 
+	r.HandleFunc("/", handler.HandleRoot)
+	r.HandleFunc("/about", handler.HandleAbout)
+	r.HandleFunc("/login", handler.HandleLogin)
+
 	fs := http.FileServer(http.Dir("static"))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
-	r.HandleFunc("/", handler.HandleRoot)
-	r.HandleFunc("/about/", handler.HandleAbout)
-	r.HandleFunc("/login/", handler.HandleLogin)
 
 	app := &http.Server{
 		Handler:      r,

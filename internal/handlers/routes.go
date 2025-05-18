@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
-	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
 )
 
@@ -19,7 +18,7 @@ type PageData struct {
 }
 
 type Handler struct {
-	ArticleUseCase *usecases.ArticleUseCase
+	ArticleUseCase *repositories.ArticleRepositoryImpl
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
@@ -31,20 +30,10 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	articles, err := h.ArticleUseCase.GetAllArticles()
+	articles, err := h.ArticleUseCase.LoadArticles()
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Println("Error loading articles:", err)
-		return
-	}
-
-	tmpl, err := template.ParseFiles(
-		"static/templates/layout.html",
-		"static/templates/index.html",
-	)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error parsing template:", err)
 		return
 	}
 
@@ -74,58 +63,23 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = tmpl.ExecuteTemplate(w, "layout", data)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error executing template:", err)
-		return
-	}
+	utils.RenderTemplate(w, "index.html", data)
 }
 
 func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(
-		"templates/layout.html",
-		"templates/about.html",
-	)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error parsing template:", err)
-		return
-	}
-
 	data := PageData{
 		Title: "About",
 		// Adicione outros campos se necessário
 	}
 
-	err = tmpl.ExecuteTemplate(w, "layout", data)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error executing template:", err)
-		return
-	}
+	utils.RenderTemplate(w, "about.html", data)
 }
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	log.Println("Login page")
-	tmpl, err := template.ParseFiles(
-		"templates/layout.html",
-		"templates/login.html",
-	)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error parsing template:", err)
-		return
-	}
-
 	data := PageData{
 		Title: "Login",
 	}
 
-	err = tmpl.ExecuteTemplate(w, "layout", data)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error executing template:", err)
-		return
-	}
+	utils.RenderTemplate(w, "login.html", data)
 }

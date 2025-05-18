@@ -9,18 +9,18 @@ import (
 )
 
 type ArticleRepositoryImpl struct {
-	Db *database.DatabaseImpl
+	db *database.DatabaseImpl
 }
 
 func NewArticleRepository(db *database.DatabaseImpl) *ArticleRepositoryImpl {
 	return &ArticleRepositoryImpl{
-		Db: db,
+		db: db,
 	}
 }
 
 func (r *ArticleRepositoryImpl) LoadArticles() ([]entities.Article, error) {
 	rows, err := r.
-		Db.
+		db.
 		Conn.
 		Query(context.Background(), "SELECT * FROM artigos")
 	if err != nil {

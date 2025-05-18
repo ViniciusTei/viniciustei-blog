@@ -4,16 +4,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/gorilla/mux"
 )
 
 type UserController struct {
-	authUseCase *usecases.AuthUseCase
+	authUseCase *repositories.AuthRepositoryImpl
 	//TODO: userUserCase *usecases.UserUseCase
 }
 
-func NewUserController(authUseCase *usecases.AuthUseCase) *UserController {
+func NewUserController(authUseCase *repositories.AuthRepositoryImpl) *UserController {
 	return &UserController{
 		authUseCase: authUseCase,
 	}
