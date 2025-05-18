@@ -40,8 +40,8 @@
 
     <ul>
     {{ if .UserId }}
-      <li><a href="/profile">Perfil</a></li>
-      <li><a href="/signout">Sair</a></li>
+      <li><a href="/user/profile">Perfil</a></li>
+      <li><button id="singout">Sair</button></li>
     {{ else }}
       <li><a href="/login">Entrar</a></li>
     {{ end }}
@@ -57,6 +57,25 @@
   <footer class="footer">
     &copy; 2025 Vinicius Teixeira. Todos os direitos reservados.
   </footer>
+  <script>
+    function handlesingout(event) {
+      event.preventDefault();
+      fetch('/user/singout', {
+        method: 'POST'
+      })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/';
+          } else {
+            console.error('Erro ao sair:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Erro de rede:', error);
+        });
+    }
+    document.getElementById('singout').addEventListener('click', handlesingout);
+  </script>
 </body>
 </html>
 {{ end }}

@@ -22,9 +22,6 @@ type Handler struct {
 }
 
 func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
-	// The "/" pattern matches everything, so we need to check
-	// that we're at the root here.
-	log.Println("Root page", r.URL.Path)
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return

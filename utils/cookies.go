@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -22,6 +23,10 @@ func GetUserFromCookie(r *http.Request) (string, string, error) {
 
 		userId = strings.Split(decrypted, ":")[0]
 		userName = strings.Split(decrypted, ":")[1]
+	}
+
+	if userId == "" && userName == "" {
+		return "", "", errors.New("User not found")
 	}
 
 	return userId, userName, nil

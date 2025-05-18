@@ -39,6 +39,7 @@ func (uc *UserController) signOut(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:  "auth_token",
 		Value: "",
+		Path:  "/",
 	})
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
@@ -65,6 +66,8 @@ func (h *UserController) signIn(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:  "auth_token",
 		Value: token,
+		Path:  "/",
 	})
+
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
