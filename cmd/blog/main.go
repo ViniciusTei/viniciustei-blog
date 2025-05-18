@@ -41,6 +41,7 @@ func main() {
 	r.HandleFunc("/about", handler.HandleAbout)
 	r.HandleFunc("/login", handler.HandleLogin)
 
+	userController.Pages("/user", r)
 	userController.Routes("/user", r)
 
 	fs := http.FileServer(http.Dir("static"))

@@ -3,7 +3,6 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/entities"
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
@@ -38,22 +37,9 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userId, userName string
-	cookie, err := r.Cookie("auth_token")
+	userId, userName, err := utils.GetUserFromCookie(r)
 	if err == nil {
 		log.Println("Error getting cookies:", err) // yet do nothing
-	}
-
-	if cookie != nil && cookie.Value != "" {
-		key := []byte("6091835705053067")
-		decrypted, err := utils.Decrypt(key, cookie.Value)
-		if err != nil {
-			log.Println("Error decrypting token:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		userId = strings.Split(decrypted, ":")[0]
-		userName = strings.Split(decrypted, ":")[1]
 	}
 
 	data := PageData{

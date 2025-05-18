@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ViniciusTei/viniciustei-blog/internal/middlewares"
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/gorilla/mux"
 )
@@ -20,13 +21,18 @@ func NewUserController(authUseCase *repositories.AuthRepositoryImpl) *UserContro
 	}
 }
 
-func (uc *UserController) Pages(mux *mux.Router) {
-	//mux.HandleFunc("GET /users", uc.HandleApiUsers)
+func (uc *UserController) Pages(prefix string, mux *mux.Router) {
+	authMiddleware := middlewares.NewAuthMidleware()
+	mux.Handle(fmt.Sprintf("%s/profile", prefix), authMiddleware.ServeHTTP(http.HandlerFunc(uc.profile)))
 }
 
 func (uc *UserController) Routes(prefix string, mux *mux.Router) {
 	mux.HandleFunc(fmt.Sprintf("%s/signin", prefix), uc.signIn).Methods(http.MethodPost)
 	mux.HandleFunc(fmt.Sprintf("%s/singout", prefix), uc.signOut).Methods(http.MethodPost)
+}
+
+func (uc *UserController) profile(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("User Profile"))
 }
 
 func (uc *UserController) signOut(w http.ResponseWriter, r *http.Request) {

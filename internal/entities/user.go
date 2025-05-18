@@ -7,3 +7,8 @@ type User struct {
 	Password string `db:"password"`
 	CriadoEm string `db:"criado_em"`
 }
+
+type AuthUser struct {
+	UserId   string
+	UserName string
+}
