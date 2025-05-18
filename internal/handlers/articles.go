@@ -6,7 +6,13 @@ import (
 	"net/http"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/gorilla/mux"
 )
+
+type ArticlePage struct {
+	Title   string
+	Content template.HTML
+}
 
 type ArticleController struct {
 	articleUseCase *usecases.ArticleUseCase
@@ -18,7 +24,7 @@ func NewArticleController(articleUseCase *usecases.ArticleUseCase) *ArticleContr
 	}
 }
 
-func (ac *ArticleController) Pages(mux *http.ServeMux) {
+func (ac *ArticleController) Pages(mux *mux.Router) {
 	mux.HandleFunc("GET /article/{slug}", ac.handleArticles)
 }
 

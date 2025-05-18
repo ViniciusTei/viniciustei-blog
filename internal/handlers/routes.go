@@ -82,53 +82,6 @@ func (h *Handler) HandleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type ArticlePage struct {
-	Title    string
-	Content  template.HTML
-	UserId   string
-	UserName string
-}
-
-func (h *Handler) HandleArticles(w http.ResponseWriter, r *http.Request) {
-	slug := r.PathValue("slug")
-	if slug == "" {
-		http.Error(w, "Article not found", http.StatusNotFound)
-		return
-	}
-
-	article, err := h.ArticleUseCase.GetArticleBySlug(slug)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error getting article:", err)
-		return
-	}
-
-	if article.Slug == "" {
-		http.Error(w, "Article not found", http.StatusNotFound)
-		return
-	}
-
-	tmpl, err := template.ParseFiles(
-		"templates/layout.html",
-		"templates/articles.html",
-	)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error parsing template:", err)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(w, "layout", ArticlePage{
-		Title:   article.Title,
-		Content: template.HTML(article.Content),
-	})
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Println("Error executing template:", err)
-		return
-	}
-}
-
 func (h *Handler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(
 		"templates/layout.html",

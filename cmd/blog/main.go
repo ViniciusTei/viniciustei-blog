@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	db "github.com/ViniciusTei/viniciustei-blog/internal/database"
 	"github.com/ViniciusTei/viniciustei-blog/internal/handlers"
@@ -10,6 +12,7 @@ import (
 	"github.com/ViniciusTei/viniciustei-blog/internal/repositories"
 	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
 	"github.com/ViniciusTei/viniciustei-blog/utils"
+	mux "github.com/gorilla/mux"
 )
 
 func main() {
@@ -20,33 +23,32 @@ func main() {
 	}
 
 	articleRepo := repositories.NewArticleRepository(&database)
-	authRepo := &repositories.AuthRepositoryImpl{Db: &database}
-
 	articleUseCase := &usecases.ArticleUseCase{Repo: articleRepo}
-	authUseCase := &usecases.AuthUseCase{Repo: authRepo}
-
-	uc := handlers.NewUserController(authUseCase)
-	ac := handlers.NewArticleController(articleUseCase)
 
 	handler := &handlers.Handler{
 		ArticleUseCase: articleUseCase,
 	}
 
-	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir("public"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	uc.Pages(mux)
-	uc.Routes(mux)
-	ac.Pages(mux)
-
-	mux.HandleFunc("/about", handler.HandleAbout)
-	mux.HandleFunc("/login", handler.HandleLogin)
-	mux.HandleFunc("/", handler.HandleRoot)
+	r := mux.NewRouter()
 
 	//middlewares
-	withMidllewaresMux := middlewares.NewLogger(middlewares.NewResponseHeader(mux, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"))
+	r.Use(middlewares.NewLogger().ServeHTTP)
+	r.Use(middlewares.NewResponseHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0").ServeHTTP)
+	r.Use(mux.CORSMethodMiddleware(r))
 
-	fmt.Printf("Starting server on %s\n", config.Port)
-	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), withMidllewaresMux)
+	fs := http.FileServer(http.Dir("static"))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	r.HandleFunc("/", handler.HandleRoot)
+	r.HandleFunc("/about/", handler.HandleAbout)
+	r.HandleFunc("/login/", handler.HandleLogin)
+
+	app := &http.Server{
+		Handler:      r,
+		Addr:         fmt.Sprintf("localhost:%s", config.Port),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	fmt.Printf("Starting server on %s\n", app.Addr)
+
+	log.Fatal(app.ListenAndServe())
 }

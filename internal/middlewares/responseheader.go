@@ -3,20 +3,18 @@ package middlewares
 import "net/http"
 
 type ResponseHeader struct {
-	handler     http.Handler
 	headerName  string
 	headerValue string
 }
 
 // NewResponseHeader constructs a new ResponseHeader middleware handler
-func NewResponseHeader(handlerToWrap http.Handler, headerName string, headerValue string) *ResponseHeader {
-	return &ResponseHeader{handlerToWrap, headerName, headerValue}
+func NewResponseHeader(headerName string, headerValue string) *ResponseHeader {
+	return &ResponseHeader{headerName, headerValue}
 }
 
-// ServeHTTP handles the request by adding the response header
-func (rh *ResponseHeader) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//add the header
-	w.Header().Add(rh.headerName, rh.headerValue)
-	//call the wrapped handler
-	rh.handler.ServeHTTP(w, r)
+func (rh *ResponseHeader) ServeHTTP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(rh.headerName, rh.headerValue)
+		next.ServeHTTP(w, r)
+	})
 }

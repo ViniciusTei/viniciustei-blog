@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ViniciusTei/viniciustei-blog/internal/usecases"
+	"github.com/gorilla/mux"
 )
 
 type UserController struct {
@@ -18,14 +19,14 @@ func NewUserController(authUseCase *usecases.AuthUseCase) *UserController {
 	}
 }
 
-func (uc *UserController) Pages(mux *http.ServeMux) {
+func (uc *UserController) Pages(mux *mux.Router) {
 	//mux.HandleFunc("GET /users", uc.HandleApiUsers)
 }
 
-func (uc *UserController) Routes(mux *http.ServeMux) {
+func (uc *UserController) Routes(mux *mux.Router) {
 	//mux.HandleFunc("POST /api/users", uc.HandleApiUsers)
-	mux.HandleFunc("POST /signin", uc.signIn)
-	mux.HandleFunc("POST /signout", uc.signOut)
+	mux.HandleFunc("/signin", uc.signIn).Methods("POST")
+	mux.HandleFunc("/signout", uc.signOut).Methods("POST")
 }
 
 func (uc *UserController) signOut(w http.ResponseWriter, r *http.Request) {
